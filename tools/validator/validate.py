@@ -18,6 +18,7 @@ import json
 import re
 import sys
 import argparse
+import os
 from pathlib import Path
 from typing import List, Dict, Tuple, Set
 from difflib import SequenceMatcher, get_close_matches
@@ -27,6 +28,11 @@ if sys.platform == 'win32':
     import codecs
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
     sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+
+# Определяем путь к корню проекта
+SCRIPT_DIR = Path(__file__).parent
+PROJECT_ROOT = SCRIPT_DIR.parent.parent
+DEFAULT_LIBRARY = PROJECT_ROOT / 'data' / 'library-full.json'
 
 
 class Colors:
@@ -440,8 +446,8 @@ def main():
     parser.add_argument('scenario', help='Путь к файлу сценария (.feature)')
     parser.add_argument(
         '--library', '-l',
-        default='../../data/library-full.json',
-        help='Путь к файлу библиотеки шагов (по умолчанию: ../../data/library-full.json)'
+        default=str(DEFAULT_LIBRARY),
+        help=f'Путь к файлу библиотеки шагов (по умолчанию: {DEFAULT_LIBRARY})'
     )
     parser.add_argument(
         '--verbose', '-v',

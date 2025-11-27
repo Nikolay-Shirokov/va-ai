@@ -22,3 +22,12 @@ Thumbs.db
 user-scenarios/
 *.local.*
 *.log
+
+# Временные файлы валидатора
+*.feature.bak
+*.feature.tmp
+validation_report.txt
+
+# Тестовые файлы пользователя
+/test_scenarios/
+/my_scenarios/

@@ -86,8 +86,14 @@ cd ai-knowledge/
 ### 5. Проверьте сценарий валидатором
 
 ```bash
-cd tools/validator/
-python validate.py ../../examples/basic/create-document.feature --ai-format
+# Windows (из корня проекта)
+validate.bat examples\basic\create-document.feature --ai-format
+
+# Linux/Mac (из корня проекта)
+./validate.sh examples/basic/create-document.feature --ai-format
+
+# Или напрямую через Python
+python tools/validator/validate.py examples/basic/create-document.feature --ai-format
 ```
 
 📖 См. [tools/validator/README.md](tools/validator/README.md) для деталей
@@ -101,8 +107,11 @@ python validate.py ../../examples/basic/create-document.feature --ai-format
 Проверьте сгенерированный сценарий на корректность:
 
 ```bash
-cd tools/validator/
-python validate.py scenario.feature --ai-format
+# Windows (из корня проекта)
+validate.bat scenario.feature --ai-format
+
+# Или универсально
+python tools/validator/validate.py scenario.feature --ai-format
 ```
 **Что проверяется:**
 - ✅ Все шаги есть в библиотеке
@@ -190,8 +199,7 @@ AI сгенерирует:
 ### Валидация и исправление
 
 ```bash
-$ cd tools/validator/
-$ python validate.py ../../examples/basic/create-document.feature --ai-format
+$ validate.bat examples\basic\create-document.feature --ai-format
 
 📊 СТАТИСТИКА:
   Валидных шагов: 8 / 10
