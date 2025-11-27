@@ -159,8 +159,9 @@ class ScenarioValidator:
     KEYWORDS = ['Дано', 'Когда', 'Тогда', 'И', 'Также', 'Затем', 'Но']
     REQUIRED_HEADERS = ['# encoding:', '# language:']
     
-    def __init__(self, library: StepLibrary):
+    def __init__(self, library: StepLibrary, debug: bool = False):
         self.library = library
+        self.debug = debug
         self.errors = []
         self.warnings = []
         self.stats = {
@@ -301,6 +302,9 @@ class ScenarioValidator:
         
         if found:
             self.stats['valid_steps'] += 1
+            if self.debug:
+                print(f"{Colors.BLUE}✓ Шаг на строке {line_num} найден:{Colors.END} {step.splitlines()[0]}")
+                print(f"{Colors.GREEN}  ↳ Соответствие в библиотеке:{Colors.END} {exact_match.splitlines()[0]}")
         else:
             self.stats['invalid_steps'] += 1
             
@@ -536,6 +540,11 @@ def main():
         action='store_true',
         help='Вывод в компактном формате (для экономии токенов)'
     )
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='Включает режим отладки с выводом каждого успешного шага'
+    )
     
     args = parser.parse_args()
     
@@ -556,7 +565,7 @@ def main():
     library = StepLibrary(args.library)
     
     # Валидируем сценарий
-    validator = ScenarioValidator(library)
+    validator = ScenarioValidator(library, debug=args.debug)
     result = validator.validate_file(args.scenario)
     
     if 'error' in result:
