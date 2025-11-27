@@ -90,14 +90,23 @@ class StepLibrary:
     @staticmethod
     def normalize_step(step: str) -> str:
         """
-        Нормализация шага для сравнения
-        Заменяет параметры на плейсхолдеры
+        Нормализация шага для сравнения.
+        Для многострочных шагов (с таблицами или docstring)
+        анализируется только первая строка.
+        Заменяет параметры на плейсхолдеры.
         """
+        # Для многострочных шагов берем только первую строку с текстом
+        first_line = step.split('\n')[0].strip()
+
         # Удаляем ключевые слова (Дано, Когда, Тогда, И, Также, Затем)
-        step = re.sub(r'^(Дано|Когда|Тогда|И|Также|Затем|Но)\s+', '', step.strip(), flags=re.IGNORECASE)
+        step = re.sub(r'^(Дано|Когда|Тогда|И|Также|Затем|Но)\s+', '', first_line, flags=re.IGNORECASE)
         
         # Приводим к нижнему регистру для единообразного сравнения
         step = step.lower()
+
+        # Убираем двоеточие в конце, характерное для шагов с таблицами
+        if step.endswith(':'):
+            step = step[:-1].strip()
         
         # Заменяем текст в двойных кавычках на плейсхолдер
         step = re.sub(r'"[^"]*"', '"{}"', step)
@@ -244,42 +253,47 @@ class ScenarioValidator:
             })
     
     def _check_steps(self, lines: List[str]):
-        """Проверка всех шагов"""
+        """Проверка всех шагов, включая многострочные"""
         in_scenario = False
-        in_table = False  # Флаг для отслеживания таблицы данных
-        
+        current_step_lines = []
+        current_step_start_line = 0
+
         for i, line in enumerate(lines, 1):
             stripped = line.strip()
-            
-            # Начало сценария
-            if stripped.startswith(('Сценарий:', 'Контекст:')):
-                in_scenario = True
-                in_table = False
-                continue
-            
-            # Конец сценария (новый блок)
-            if in_scenario and stripped.startswith(('Функционал:', 'Сценарий:')):
-                in_scenario = False
-                in_table = False
-                # Не используем continue, чтобы обработать начало нового сценария в этой же итерации
-            
-            # Проверяем таблицу данных (строки начинающиеся с |)
-            if in_scenario and stripped.startswith('|'):
-                in_table = True
-                continue
-            
-            # Если была таблица, но строка не начинается с |, таблица закончилась
-            if in_table and not stripped.startswith('|'):
-                in_table = False
-            
-            # Пропускаем комментарии
-            if stripped.startswith('#'):
-                continue
-            
-            # Проверяем шаги (только если не в таблице)
-            if in_scenario and not in_table and any(stripped.startswith(kw) for kw in self.KEYWORDS):
+
+            is_keyword_line = any(stripped.startswith(kw) for kw in self.KEYWORDS)
+            is_new_scenario = stripped.startswith(('Сценарий:', 'Контекст:', 'Функционал:'))
+            is_comment = stripped.startswith('#')
+            is_empty = not stripped
+
+            # Если мы встречаем новый шаг или начало нового сценария,
+            # и у нас есть накопленный предыдущий шаг, то валидируем его.
+            if current_step_lines and (is_keyword_line or is_new_scenario):
+                full_step = "\n".join(current_step_lines)
                 self.stats['total_steps'] += 1
-                self._validate_step(i, stripped)
+                self._validate_step(current_step_start_line, full_step)
+                current_step_lines = []
+
+            if is_new_scenario:
+                in_scenario = not stripped.startswith('Функционал:')
+                continue
+
+            if not in_scenario or is_comment or is_empty:
+                continue
+
+            if is_keyword_line:
+                # Начинаем новый шаг
+                current_step_start_line = i
+                current_step_lines = [stripped]
+            elif current_step_lines and (stripped.startswith('|') or stripped.startswith('"""')):
+                # Продолжаем многострочный шаг (таблица или docstring)
+                current_step_lines.append(stripped)
+
+        # Валидируем последний шаг в файле, если он есть
+        if current_step_lines:
+            full_step = "\n".join(current_step_lines)
+            self.stats['total_steps'] += 1
+            self._validate_step(current_step_start_line, full_step)
     
     def _validate_step(self, line_num: int, step: str):
         """Валидация конкретного шага"""
