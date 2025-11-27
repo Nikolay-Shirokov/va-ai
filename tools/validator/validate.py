@@ -22,6 +22,12 @@ from pathlib import Path
 from typing import List, Dict, Tuple, Set
 from difflib import SequenceMatcher, get_close_matches
 
+# Настройка кодировки для Windows
+if sys.platform == 'win32':
+    import codecs
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
+
 
 class Colors:
     """ANSI цвета для терминала"""
@@ -82,16 +88,28 @@ class StepLibrary:
         Заменяет параметры на плейсхолдеры
         """
         # Удаляем ключевые слова (Дано, Когда, Тогда, И, Также, Затем)
-        step = re.sub(r'^(Дано|Когда|Тогда|И|Также|Затем|Но)\s+', '', step.strip())
+        step = re.sub(r'^(Дано|Когда|Тогда|И|Также|Затем|Но)\s+', '', step.strip(), flags=re.IGNORECASE)
         
-        # Заменяем текст в кавычках на плейсхолдер
+        # Приводим к нижнему регистру для единообразного сравнения
+        step = step.lower()
+        
+        # Заменяем текст в двойных кавычках на плейсхолдер
         step = re.sub(r'"[^"]*"', '"{}"', step)
+        
+        # Заменяем текст в одинарных кавычках на плейсхолдер
+        step = re.sub(r"'[^']*'", '"{}"', step)
+        
+        # Заменяем экранированные кавычки из JSON (\") на обычные
+        step = step.replace('\\"', '"')
         
         # Заменяем переменные ($Имя$) на плейсхолдер
         step = re.sub(r'\$[^$]+\$', '${}$', step)
         
         # Заменяем числа на плейсхолдер
         step = re.sub(r'\b\d+\b', '#', step)
+        
+        # Убираем лишние пробелы
+        step = re.sub(r'\s+', ' ', step)
         
         return step.strip()
     
@@ -422,8 +440,8 @@ def main():
     parser.add_argument('scenario', help='Путь к файлу сценария (.feature)')
     parser.add_argument(
         '--library', '-l',
-        default='data/library-full.json',
-        help='Путь к файлу библиотеки шагов (по умолчанию: data/library-full.json)'
+        default='../../data/library-full.json',
+        help='Путь к файлу библиотеки шагов (по умолчанию: ../../data/library-full.json)'
     )
     parser.add_argument(
         '--verbose', '-v',
