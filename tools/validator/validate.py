@@ -422,8 +422,8 @@ def main():
     parser.add_argument('scenario', help='Путь к файлу сценария (.feature)')
     parser.add_argument(
         '--library', '-l',
-        default='БиблиотекаШагов.json',
-        help='Путь к файлу библиотеки шагов (по умолчанию: БиблиотекаШагов.json)'
+        default='data/library-full.json',
+        help='Путь к файлу библиотеки шагов (по умолчанию: data/library-full.json)'
     )
     parser.add_argument(
         '--verbose', '-v',

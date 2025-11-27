@@ -35,7 +35,7 @@ python tools/validator/validate.py scenario.feature
 ### С указанием пути к библиотеке
 
 ```bash
-python tools/validator/validate.py scenario.feature --library БиблиотекаШагов.json
+python tools/validator/validate.py scenario.feature --library data/library-full.json
 ```
 
 ### Подробный вывод
@@ -54,7 +54,7 @@ python tools/validator/validate.py scenario.feature --ai-format
 
 ```bash
 python tools/validator/validate.py scenario.feature \
-    --library /path/to/БиблиотекаШагов.json \
+    --library data/library-full.json \
     --verbose \
     --ai-format
 ```
@@ -63,7 +63,7 @@ python tools/validator/validate.py scenario.feature \
 
 | Опция | Сокращение | Описание |
 |-------|-----------|----------|
-| `--library PATH` | `-l` | Путь к файлу библиотеки шагов (по умолчанию: БиблиотекаШагов.json) |
+| `--library PATH` | `-l` | Путь к файлу библиотеки шагов (по умолчанию: data/library-full.json) |
 | `--verbose` | `-v` | Подробный вывод с текстом каждого шага |
 | `--ai-format` | | Вывод рекомендаций в формате для AI-ассистента |
 | `--help` | `-h` | Показать справку |
