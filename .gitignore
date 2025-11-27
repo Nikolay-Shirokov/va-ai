@@ -35,3 +35,6 @@ validation_report.txt
 # Тестовые файлы пользователя
 /test_scenarios/
 /my_scenarios/
+
+# Temporary debug files
+temp_debug/
