@@ -2,7 +2,7 @@
 
 ## Описание
 
-Скрипт `validate_scenario.py` автоматически проверяет сценарии Vanessa Automation на:
+Скрипт `validate.py` автоматически проверяет сценарии Vanessa Automation на:
 
 1. ✅ **Наличие всех шагов в библиотеке** - каждый шаг проверяется на существование
 2. ✅ **Корректность синтаксиса Gherkin** - правильные ключевые слова, кавычки
@@ -21,7 +21,7 @@
 
 ```bash
 # Скрипт готов к использованию, просто сделайте его исполняемым
-chmod +x validate_scenario.py
+chmod +x validate.py
 ```
 
 ## Использование
@@ -29,31 +29,31 @@ chmod +x validate_scenario.py
 ### Базовое использование
 
 ```bash
-python validate_scenario.py scenario.feature
+python tools/validator/validate.py scenario.feature
 ```
 
 ### С указанием пути к библиотеке
 
 ```bash
-python validate_scenario.py scenario.feature --library БиблиотекаШагов.json
+python tools/validator/validate.py scenario.feature --library БиблиотекаШагов.json
 ```
 
 ### Подробный вывод
 
 ```bash
-python validate_scenario.py scenario.feature --verbose
+python tools/validator/validate.py scenario.feature --verbose
 ```
 
 ### Формат для AI-ассистента
 
 ```bash
-python validate_scenario.py scenario.feature --ai-format
+python tools/validator/validate.py scenario.feature --ai-format
 ```
 
 ### Все опции вместе
 
 ```bash
-python validate_scenario.py scenario.feature \
+python tools/validator/validate.py scenario.feature \
     --library /path/to/БиблиотекаШагов.json \
     --verbose \
     --ai-format
@@ -161,7 +161,7 @@ python validate_scenario.py scenario.feature \
 ```
 1. AI генерирует сценарий → scenario.feature
                               ↓
-2. Валидатор проверяет     → python validate_scenario.py scenario.feature --ai-format
+2. Валидатор проверяет     → python tools/validator/validate.py scenario.feature --ai-format
                               ↓
 3. Результат возвращается AI → Список ошибок с рекомендациями
                               ↓
@@ -177,7 +177,7 @@ python validate_scenario.py scenario.feature \
 
 АЛГОРИТМ РАБОТЫ:
 1. Сгенерируй сценарий по запросу пользователя
-2. Я запущу валидатор: python validate_scenario.py scenario.feature --ai-format
+2. Я запущу валидатор: python tools/validator/validate.py scenario.feature --ai-format
 3. Если есть ошибки - исправь их согласно рекомендациям
 4. Повторяй пока валидация не пройдет успешно
 
@@ -293,7 +293,7 @@ python validate_scenario.py scenario.feature \
 
 ```bash
 #!/bin/bash
-if python validate_scenario.py scenario.feature; then
+if python tools/validator/validate.py scenario.feature; then
     echo "Сценарий валиден, запускаем тесты..."
     vanessa-automation.exe scenario.feature
 else
@@ -310,7 +310,7 @@ fi
 validate_scenarios:
   stage: test
   script:
-    - python validate_scenario.py features/*.feature
+    - python tools/validator/validate.py features/*.feature
   artifacts:
     when: on_failure
     paths:
@@ -323,7 +323,7 @@ validate_scenarios:
 - name: Validate Scenarios
   run: |
     for file in features/*.feature; do
-      python validate_scenario.py "$file" || exit 1
+      python tools/validator/validate.py "$file" || exit 1
     done
 ```
 
@@ -361,7 +361,7 @@ A: Перед каждым коммитом в Git и перед запуско�
 A: Да, используйте цикл:
 ```bash
 for file in features/*.feature; do
-    python validate_scenario.py "$file"
+    python tools/validator/validate.py "$file"
 done
 ```
 
@@ -386,6 +386,6 @@ MIT License - свободное использование
 
 ---
 
-**Версия:** 1.0  
-**Дата:** Ноябрь 2025  
+**Версия:** 1.1
+**Дата:** Ноябрь 2025
 **Совместимость:** Vanessa Automation 1.2.042.x+
