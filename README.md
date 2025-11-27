@@ -138,8 +138,6 @@ python update_knowledge_base.py
 - [docs/which-files-to-use.md](docs/which-files-to-use.md) - какие файлы использовать
 - [docs/best-practices.md](docs/best-practices.md) - лучшие практики
 - [docs/implementation.md](docs/implementation.md) - руководство по внедрению
-- [docs/troubleshooting.md](docs/troubleshooting.md) - решение проблем
-- [docs/faq.md](docs/faq.md) - часто задаваемые вопросы
 
 ### Для AI-ассистента
 
@@ -152,11 +150,6 @@ python update_knowledge_base.py
 - [tools/validator/README.md](tools/validator/README.md) - документация валидатора
 - [tools/update_knowledge_base/README.md](tools/update_knowledge_base/README.md) - документация по обновлению базы знаний
 
-### Продвинутые темы
-
-- [docs/advanced/rag-analysis.md](docs/advanced/rag-analysis.md) - анализ применимости RAG
-- [docs/advanced/ci-cd-integration.md](docs/advanced/ci-cd-integration.md) - интеграция в CI/CD
-- [docs/advanced/custom-steps.md](docs/advanced/custom-steps.md) - добавление кастомных шагов
 
 ---
 
@@ -308,16 +301,10 @@ va-ai/
 │       └── example-errors.feature      # Примеры ошибок
 │
 ├── docs/                               # 📚 Документация
-│   ├── quick-start.md                  # Быстрый старт (5 мин)
+│   ├── quick-start.md                  # Быстрый старт
 │   ├── which-files-to-use.md           # Какие файлы использовать
 │   ├── best-practices.md               # Лучшие практики
-│   ├── implementation.md               # Руководство по внедрению
-│   ├── troubleshooting.md              # Решение проблем
-│   ├── faq.md                          # Часто задаваемые вопросы
-│   └── advanced/                       # Продвинутые темы
-│       ├── rag-analysis.md             # Анализ RAG
-│       ├── ci-cd-integration.md        # CI/CD интеграция
-│       └── custom-steps.md             # Кастомные шаги
+│   └── implementation.md               # Руководство по внедрению
 │
 ├── templates/                          # 📋 Готовые шаблоны
 │   ├── README.md                       # Как использовать шаблоны
