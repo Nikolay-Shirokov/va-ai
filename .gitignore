@@ -28,6 +28,10 @@ user-scenarios/
 *.feature.tmp
 validation_report.txt
 
+# Директория для загрузки файлов
+/upload/*
+!/upload/.gitkeep
+
 # Тестовые файлы пользователя
 /test_scenarios/
 /my_scenarios/

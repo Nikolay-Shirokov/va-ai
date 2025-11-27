@@ -12,10 +12,17 @@
 import json
 import sys
 import argparse
+import codecs
+import os
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
 from typing import Dict, List, Any
+
+# Настройка кодировки для Windows
+if sys.platform == 'win32':
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout.buffer, 'strict')
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr.buffer, 'strict')
 
 
 class KnowledgeBaseUpdater:
@@ -39,7 +46,7 @@ class KnowledgeBaseUpdater:
         self.library_data = []
         self.old_knowledge = {}
     
-    def log(self, message: str, level: str = 'INFO'):
+    def log(self, message: str, level: str = 'INFO', end='\n'):
         """Логирование"""
         prefix = {
             'INFO': '✓',
@@ -49,7 +56,7 @@ class KnowledgeBaseUpdater:
             'SUCCESS': '✅'
         }.get(level, '·')
         
-        print(f"{prefix} {message}")
+        print(f"{prefix} {message}", end=end)
     
     def load_source_library(self):
         """Загрузка исходной библиотеки шагов"""
@@ -218,7 +225,7 @@ class KnowledgeBaseUpdater:
             json.dump(knowledge_base, f, ensure_ascii=False, indent=2)
         
         size_kb = ai_kb_file.stat().st_size / 1024
-        self.log(f"✓ {ai_kb_file} ({size_kb:.0f} KB)", 'SUCCESS')
+        self.log(f"{ai_kb_file} ({size_kb:.0f} KB)", 'SUCCESS')
         
         # 2. Копируем полную библиотеку в data/
         full_lib_file = self.data_dir / 'library-full.json'
@@ -226,14 +233,14 @@ class KnowledgeBaseUpdater:
             json.dump(self.library_data, f, ensure_ascii=False, indent=2)
         
         size_kb = full_lib_file.stat().st_size / 1024
-        self.log(f"✓ {full_lib_file} ({size_kb:.0f} KB)", 'SUCCESS')
+        self.log(f"{full_lib_file} ({size_kb:.0f} KB)", 'SUCCESS')
         
         # 3. Сохраняем статистику
         stats_file = self.data_dir / 'statistics.json'
         with open(stats_file, 'w', encoding='utf-8') as f:
             json.dump(statistics, f, ensure_ascii=False, indent=2)
         
-        self.log(f"✓ {stats_file}", 'SUCCESS')
+        self.log(f"{stats_file}", 'SUCCESS')
         
         # 4. Создаем README для ai-knowledge
         self.create_ai_knowledge_readme(statistics)
@@ -305,7 +312,7 @@ class KnowledgeBaseUpdater:
         with open(readme_file, 'w', encoding='utf-8') as f:
             f.write(content)
         
-        self.log(f"✓ {readme_file}", 'SUCCESS')
+        self.log(f"{readme_file}", 'SUCCESS')
     
     def create_data_readme(self, stats: Dict):
         """Создание/обновление README для data"""
@@ -371,49 +378,47 @@ python tools/update_knowledge_base.py path/to/БиблиотекаШагов.jso
         with open(readme_file, 'w', encoding='utf-8') as f:
             f.write(content)
         
-        self.log(f"✓ {readme_file}", 'SUCCESS')
+        self.log(f"{readme_file}", 'SUCCESS')
     
     def print_summary(self):
         """Вывод итоговой статистики"""
-        self.log("\n" + "="*70)
-        self.log("ИТОГОВАЯ СТАТИСТИКА")
-        self.log("="*70 + "\n")
+        print("\n" + "="*70)
+        print("ИТОГОВАЯ СТАТИСТИКА")
+        print("="*70 + "\n")
         
         mode = "РЕЖИМ ПРЕДПРОСМОТРА" if self.dry_run else "ОБНОВЛЕНИЕ ЗАВЕРШЕНО"
-        self.log(f"Режим: {mode}\n")
+        print(f"Режим: {mode}\n")
         
-        self.log(f"📊 Библиотека шагов:")
-        self.log(f"   Всего шагов: {self.stats['total_steps']}")
-        self.log(f"   Категорий: {self.stats['categories']}")
-        self.log(f"   Подкатегорий: {self.stats['subcategories']}")
+        print(f"📊 Библиотека шагов:")
+        print(f"   Всего шагов: {self.stats['total_steps']}")
+        print(f"   Категорий: {self.stats['categories']}")
+        print(f"   Подкатегорий: {self.stats['subcategories']}")
         
         if self.old_knowledge:
-            self.log(f"\n🔄 Изменения:")
-            self.log(f"   Новых шагов: {self.stats['new_steps']}", 
-                    'INFO' if self.stats['new_steps'] else 'INFO')
-            self.log(f"   Удаленных шагов: {self.stats['removed_steps']}", 
-                    'WARN' if self.stats['removed_steps'] else 'INFO')
+            print(f"\n🔄 Изменения:")
+            print(f"   Новых шагов: {self.stats['new_steps']}")
+            print(f"   Удаленных шагов: {self.stats['removed_steps']}")
         
         if not self.dry_run:
-            self.log(f"\n📁 Созданные файлы:")
-            self.log(f"   {self.output_dir}/steps-library.json (для AI)")
-            self.log(f"   {self.output_dir}/README.md")
-            self.log(f"   {self.data_dir}/library-full.json")
-            self.log(f"   {self.data_dir}/statistics.json")
-            self.log(f"   {self.data_dir}/README.md")
+            print(f"\n📁 Созданные файлы:")
+            print(f"   {os.path.join(self.output_dir, 'steps-library.json')} (для AI)")
+            print(f"   {os.path.join(self.output_dir, 'README.md')}")
+            print(f"   {os.path.join(self.data_dir, 'library-full.json')}")
+            print(f"   {os.path.join(self.data_dir, 'statistics.json')}")
+            print(f"   {os.path.join(self.data_dir, 'README.md')}")
         
-        self.log("")
+        print("")
         
         if self.dry_run:
-            self.log("Для применения изменений запустите без --dry-run", 'WARN')
+            print("⚠ Для применения изменений запустите без --dry-run")
         else:
-            self.log("✅ База знаний успешно обновлена!", 'SUCCESS')
-            self.log("\nСледующие шаги:")
-            self.log("1. Проверьте обновленные файлы")
-            self.log("2. Закоммитьте изменения в Git")
-            self.log("3. Загрузите новые файлы в AI для тестирования")
+            print("✅ База знаний успешно обновлена!")
+            print("\nСледующие шаги:")
+            print("1. Проверьте обновленные файлы")
+            print("2. Закоммитьте изменения в Git")
+            print("3. Загрузите новые файлы в AI для тестирования")
         
-        self.log("")
+        print("")
     
     def update(self):
         """Главная функция обновления"""
@@ -484,7 +489,9 @@ def main():
     
     parser.add_argument(
         'source',
-        help='Путь к файлу БиблиотекаШагов.json'
+        nargs='?',
+        default='upload/БиблиотекаШагов.json',
+        help='Путь к файлу БиблиотекаШагов.json (по умолчанию: upload/БиблиотекаШагов.json)'
     )
     
     parser.add_argument(
