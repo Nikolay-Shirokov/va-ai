@@ -246,6 +246,7 @@ class ScenarioValidator:
     def _check_steps(self, lines: List[str]):
         """Проверка всех шагов"""
         in_scenario = False
+        in_table = False  # Флаг для отслеживания таблицы данных
         
         for i, line in enumerate(lines, 1):
             stripped = line.strip()
@@ -253,15 +254,30 @@ class ScenarioValidator:
             # Начало сценария
             if stripped.startswith(('Сценарий:', 'Контекст:')):
                 in_scenario = True
+                in_table = False
                 continue
             
-            # Конец сценария (пустая строка или новый блок)
-            if in_scenario and (not stripped or stripped.startswith(('Функционал:', 'Сценарий:'))):
+            # Конец сценария (новый блок)
+            if in_scenario and stripped.startswith(('Функционал:', 'Сценарий:')):
                 in_scenario = False
+                in_table = False
+                # Не используем continue, чтобы обработать начало нового сценария в этой же итерации
+            
+            # Проверяем таблицу данных (строки начинающиеся с |)
+            if in_scenario and stripped.startswith('|'):
+                in_table = True
                 continue
             
-            # Проверяем шаги
-            if in_scenario and any(stripped.startswith(kw) for kw in self.KEYWORDS):
+            # Если была таблица, но строка не начинается с |, таблица закончилась
+            if in_table and not stripped.startswith('|'):
+                in_table = False
+            
+            # Пропускаем комментарии
+            if stripped.startswith('#'):
+                continue
+            
+            # Проверяем шаги (только если не в таблице)
+            if in_scenario and not in_table and any(stripped.startswith(kw) for kw in self.KEYWORDS):
                 self.stats['total_steps'] += 1
                 self._validate_step(i, stripped)
     
