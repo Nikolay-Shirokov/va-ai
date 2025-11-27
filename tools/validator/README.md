@@ -66,6 +66,7 @@ python tools/validator/validate.py scenario.feature \
 | `--library PATH` | `-l` | Путь к файлу библиотеки шагов (по умолчанию: data/library-full.json) |
 | `--verbose` | `-v` | Подробный вывод с текстом каждого шага |
 | `--ai-format` | | Вывод рекомендаций в формате для AI-ассистента |
+| `--compact` | `-c` | Компактный YAML-отчет для экономии токенов |
 | `--help` | `-h` | Показать справку |
 
 ## Примеры вывода

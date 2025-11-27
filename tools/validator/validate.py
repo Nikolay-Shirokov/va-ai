@@ -395,6 +395,48 @@ def print_report(result: Dict, verbose: bool = False):
     print("="*80 + "\n")
 
 
+def print_compact_report(result: Dict):
+    """Вывод отчета в компактном формате для экономии токенов."""
+    errors = result.get('errors', [])
+    warnings = result.get('warnings', [])
+
+    if not errors and not warnings:
+        print("OK")
+        return
+
+    print("---")
+    print("report:")
+    if errors:
+        print("  errors:")
+        for error in errors:
+            line = error.get('line', 0)
+            step = error.get('step', '')
+            message = error.get('message', '')
+            
+            # Для ошибок шагов выводим несколько лучших вариантов
+            if error['type'] == 'step' and error.get('similar_steps'):
+                print(f"    - line: {line}")
+                print(f"      step: \"{step}\"")
+                print(f"      suggestions:")
+                for suggestion in error['similar_steps'][:3]:
+                    print(f"        - \"{suggestion}\"")
+            else: # Для остальных ошибок - просто сообщение
+                print(f"    - line: {line}")
+                print(f"      step: \"{step}\"")
+                print(f"      error: \"{message}\"")
+                print(f"      fix: \"{error.get('suggestion', '')}\"")
+
+    if warnings:
+        print("  warnings:")
+        for warning in warnings:
+            line = warning.get('line', 0)
+            message = warning.get('message', '')
+            print(f"    - line: {line}")
+            print(f"      warning: \"{message}\"")
+            print(f"      fix: \"{warning.get('suggestion', '')}\"")
+    print("---")
+
+
 def print_recommendations_for_ai(result: Dict):
     """Вывод рекомендаций в формате для AI-ассистента"""
     errors = result['errors']
@@ -459,6 +501,11 @@ def main():
         action='store_true',
         help='Вывод рекомендаций в формате для AI-ассистента'
     )
+    parser.add_argument(
+        '--compact', '-c',
+        action='store_true',
+        help='Вывод в компактном формате (для экономии токенов)'
+    )
     
     args = parser.parse_args()
     
@@ -486,12 +533,14 @@ def main():
         print(f"{Colors.RED}✗ Ошибка: {result['error']}{Colors.END}")
         sys.exit(1)
     
-    # Выводим отчет
-    print_report(result, verbose=args.verbose)
-    
-    # Выводим рекомендации для AI
-    if args.ai_format:
+    # Выводим отчет в нужном формате
+    if args.compact:
+        print_compact_report(result)
+    elif args.ai_format:
+        print_report(result, verbose=args.verbose)
         print_recommendations_for_ai(result)
+    else:
+        print_report(result, verbose=args.verbose)
     
     # Возвращаем код выхода
     sys.exit(0 if not result['errors'] else 1)

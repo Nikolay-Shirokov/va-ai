@@ -107,11 +107,11 @@ python tools/validator/validate.py examples/basic/create-document.feature --ai-f
 Проверьте сгенерированный сценарий на корректность:
 
 ```bash
-# Windows (из корня проекта)
-validate.bat scenario.feature --ai-format
+# Компактный отчет (рекомендуется для AI)
+validate.bat scenario.feature --compact
 
-# Или универсально
-python tools/validator/validate.py scenario.feature --ai-format
+# Полный отчет для AI
+validate.bat scenario.feature --ai-format
 ```
 **Что проверяется:**
 - ✅ Все шаги есть в библиотеке
