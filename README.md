@@ -198,6 +198,32 @@ validate.bat scenario.feature --ai-format
 ```
 📖 Подробнее: [tools/validator/README.md](tools/validator/README.md) | [tools/validator/quick-start.md](tools/validator/quick-start.md)
 
+### Умный поиск шагов (search-steps.py)
+
+Инструмент для динамического поиска релевантных шагов без загрузки всей библиотеки.
+
+```bash
+# Простой поиск
+python tools/search-steps/search_steps.py --query "нажать кнопку" --top 5
+
+# Batch search (несколько запросов)
+python tools/search-steps/search_steps.py \
+  --query "открыть документ" "заполнить таблицу" "провести" \
+  --category UI --top 5
+
+# Статистика библиотеки
+python tools/search-steps/search_steps.py --stats --format human
+```
+
+**Возможности:**
+- ✅ Batch search - поиск по нескольким запросам за раз
+- ✅ Фильтрация по категориям и подкатегориям
+- ✅ Форматы вывода: JSON, human, yaml-compact
+- ✅ Производительность: < 200 мс для 10 запросов
+- ✅ Индексированный поиск для ускорения
+
+📖 Подробнее: [tools/search-steps/README.md](tools/search-steps/README.md) | [tools/search-steps/examples.md](tools/search-steps/examples.md)
+
 ### Обновление базы знаний
 
 Скрипт `update_knowledge_base.py` автоматически обновляет `steps-library.json` на основе `library-full.json`.
