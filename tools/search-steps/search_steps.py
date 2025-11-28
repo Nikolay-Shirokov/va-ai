@@ -171,7 +171,7 @@ class StepsSearcher:
         """
         self.library = library
     
-    def search(self, query: str, top_n: int = 10, category: str = None) -> List[Dict]:
+    def search(self, query: str, top_n: int = 10, category: str = None, subcategory: str = None) -> List[Dict]:
         """
         Поиск шагов по запросу
         
@@ -179,6 +179,7 @@ class StepsSearcher:
             query: Поисковый запрос
             top_n: Количество возвращаемых результатов
             category: Фильтр по категории (опционально)
+            subcategory: Фильтр по подкатегории (опционально)
             
         Returns:
             Список найденных шагов с релевантностью
@@ -192,6 +193,10 @@ class StepsSearcher:
         for norm_step, step_info in self.library.steps_normalized.items():
             # Применяем фильтр по категории если нужен
             if category and step_info['category'] != category:
+                continue
+            
+            # Применяем фильтр по подкатегории если нужен
+            if subcategory and step_info['subcategory'] != subcategory:
                 continue
             
             # Вычисляем схожесть
@@ -217,7 +222,7 @@ class StepsSearcher:
         # Возвращаем топ-N результатов
         return matches[:top_n]
     
-    def batch_search(self, queries: List[str], top_n: int = 10, category: str = None) -> Dict:
+    def batch_search(self, queries: List[str], top_n: int = 10, category: str = None, subcategory: str = None) -> Dict:
         """
         Поиск по нескольким запросам (batch search)
         
@@ -225,6 +230,7 @@ class StepsSearcher:
             queries: Список поисковых запросов
             top_n: Количество результатов на запрос
             category: Фильтр по категории (опционально)
+            subcategory: Фильтр по подкатегории (опционально)
             
         Returns:
             Dict с результатами для каждого запроса
@@ -232,7 +238,7 @@ class StepsSearcher:
         results = {}
         
         for query in queries:
-            results[query] = self.search(query, top_n, category)
+            results[query] = self.search(query, top_n, category, subcategory)
         
         # Подсчитываем общее количество результатов
         total_results = sum(len(r) for r in results.values())
@@ -241,6 +247,58 @@ class StepsSearcher:
             'total_queries': len(queries),
             'total_results': total_results,
             'results': results
+        }
+
+
+    def get_category(self, category: str, subcategory: str = None) -> List[Dict]:
+        """
+        Получить все шаги указанной категории
+        
+        Args:
+            category: Название категории
+            subcategory: Подкатегория (опционально)
+            
+        Returns:
+            Список всех шагов категории
+        """
+        results = []
+        
+        for step_info in self.library.steps:
+            if step_info['category'] != category:
+                continue
+            
+            if subcategory and step_info['subcategory'] != subcategory:
+                continue
+            
+            result = {
+                'step': step_info['step'],
+                'category': step_info['category']
+            }
+            
+            if step_info['subcategory']:
+                result['subcategory'] = step_info['subcategory']
+            
+            results.append(result)
+        
+        return results
+    
+    def get_stats(self) -> Dict:
+        """
+        Получить статистику библиотеки
+        
+        Returns:
+            Словарь со статистикой
+        """
+        # Подсчет категорий
+        categories_count = {}
+        for step_info in self.library.steps:
+            cat = step_info['category']
+            categories_count[cat] = categories_count.get(cat, 0) + 1
+        
+        return {
+            'total_steps': len(self.library.steps),
+            'total_categories': len(categories_count),
+            'categories': categories_count
         }
 
 
@@ -255,6 +313,132 @@ def format_json_output(data: Dict) -> str:
         Отформатированная JSON строка
     """
     return json.dumps(data, ensure_ascii=False, indent=2)
+
+
+def format_human_output(data: Dict) -> str:
+    """
+    Форматирование вывода в человекочитаемом формате
+    
+    Args:
+        data: Данные для вывода
+        
+    Returns:
+        Отформатированная строка
+    """
+    lines = []
+    lines.append("═" * 70)
+    lines.append("ПОИСК ШАГОВ VANESSA AUTOMATION")
+    lines.append("═" * 70)
+    lines.append("")
+    
+    # Для stats
+    if 'total_steps' in data and 'total_categories' in data:
+        lines.append(f"Всего шагов: {data['total_steps']}")
+        lines.append(f"Категорий: {data['total_categories']}")
+        lines.append("")
+        lines.append("Распределение по категориям:")
+        for cat, count in sorted(data['categories'].items(), key=lambda x: x[1], reverse=True):
+            lines.append(f"  {cat}: {count} шагов")
+        lines.append("═" * 70)
+        return "\n".join(lines)
+    
+    # Для get-category
+    if 'category' in data and 'steps' in data:
+        lines.append(f"Категория: {data['category']}")
+        if data.get('subcategory'):
+            lines.append(f"Подкатегория: {data['subcategory']}")
+        lines.append(f"Найдено шагов: {len(data['steps'])}")
+        lines.append("")
+        for i, step_info in enumerate(data['steps'], 1):
+            step_text = step_info['step'].split('\n')[0]  # Только первая строка
+            lines.append(f"{i}. {step_text}")
+            if step_info.get('subcategory'):
+                lines.append(f"   └─ {step_info['subcategory']}")
+        lines.append("═" * 70)
+        return "\n".join(lines)
+    
+    # Для обычного поиска
+    if 'query' in data:
+        # Одиночный запрос
+        lines.append(f"Запрос: \"{data['query']}\"")
+        lines.append(f"Найдено: {data['found']} шагов")
+        lines.append("")
+        
+        for i, result in enumerate(data['results'], 1):
+            relevance = int(result['relevance'] * 100)
+            step_text = result['step'].split('\n')[0]
+            lines.append(f"{i}. [{result['category']} | {relevance}%] {step_text}")
+            if result.get('subcategory'):
+                lines.append(f"   └─ {result['subcategory']}")
+    else:
+        # Batch search
+        lines.append(f"Запросов: {data['total_queries']}")
+        lines.append(f"Найдено шагов: {data['total_results']}")
+        lines.append("")
+        
+        for i, (query, results) in enumerate(data['results'].items(), 1):
+            lines.append("─" * 70)
+            lines.append(f"Запрос {i}: \"{query}\"")
+            lines.append("─" * 70)
+            lines.append("")
+            
+            for j, result in enumerate(results, 1):
+                relevance = int(result['relevance'] * 100)
+                step_text = result['step'].split('\n')[0]
+                lines.append(f"{j}. [{result['category']} | {relevance}%] {step_text}")
+                if result.get('subcategory'):
+                    lines.append(f"   └─ {result['subcategory']}")
+            lines.append("")
+    
+    lines.append("═" * 70)
+    return "\n".join(lines)
+
+
+def format_yaml_compact_output(data: Dict) -> str:
+    """
+    Форматирование вывода в компактном YAML формате
+    
+    Args:
+        data: Данные для вывода
+        
+    Returns:
+        Отформатированная строка в YAML стиле
+    """
+    lines = ["results:"]
+    
+    # Для stats
+    if 'total_steps' in data:
+        lines = ["stats:"]
+        lines.append(f"  total_steps: {data['total_steps']}")
+        lines.append(f"  categories: {data['total_categories']}")
+        return "\n".join(lines)
+    
+    # Для get-category
+    if 'category' in data and 'steps' in data:
+        lines = [f"{data['category']}:"]
+        for step_info in data['steps']:
+            step_text = step_info['step'].split('\n')[0]
+            lines.append(f"  - {step_text}")
+        return "\n".join(lines)
+    
+    # Для обычного поиска
+    if 'query' in data:
+        # Одиночный запрос
+        lines.append(f"  {data['query']}:")
+        for result in data['results']:
+            step_text = result['step'].split('\n')[0]
+            relevance = int(result['relevance'] * 100)
+            lines.append(f"    - {step_text} [{result['category']}, {relevance}%]")
+    else:
+        # Batch search
+        for query, results in data['results'].items():
+            lines.append(f"  {query}:")
+            for result in results:
+                step_text = result['step'].split('\n')[0]
+                relevance = int(result['relevance'] * 100)
+                lines.append(f"    - {step_text} [{result['category']}, {relevance}%]")
+    
+    return "\n".join(lines)
 
 
 def main():
@@ -272,29 +456,69 @@ def main():
   
   # С фильтром по категории
   python search_steps.py --query "таблица" --category UI --top 10
+  
+  # Получить все шаги категории
+  python search_steps.py --get-category "Переменные"
+  
+  # Статистика библиотеки
+  python search_steps.py --stats
+  
+  # Человекочитаемый формат
+  python search_steps.py --query "документ" --format human
         """
     )
     
-    parser.add_argument(
+    # Группа: Поиск
+    search_group = parser.add_argument_group('Поиск')
+    search_group.add_argument(
         '--query',
         nargs='+',
-        required=True,
         help='Поисковые запросы (можно указать несколько для batch search)'
     )
     
-    parser.add_argument(
+    search_group.add_argument(
+        '--category',
+        help='Фильтр по категории (например: UI, Переменные, Прочее)'
+    )
+    
+    search_group.add_argument(
+        '--subcategory',
+        help='Фильтр по подкатегории (например: "Формы.Кнопки")'
+    )
+    
+    search_group.add_argument(
         '--top',
         type=int,
         default=10,
         help='Количество результатов на запрос (по умолчанию: 10)'
     )
     
-    parser.add_argument(
-        '--category',
-        help='Фильтр по категории (например: UI, Переменные, Прочее)'
+    # Группа: Вывод
+    output_group = parser.add_argument_group('Вывод')
+    output_group.add_argument(
+        '--format',
+        choices=['json', 'human', 'yaml-compact'],
+        default='json',
+        help='Формат вывода (по умолчанию: json)'
     )
     
-    parser.add_argument(
+    # Группа: Специальные команды
+    special_group = parser.add_argument_group('Специальные')
+    special_group.add_argument(
+        '--get-category',
+        metavar='CATEGORY',
+        help='Получить все шаги указанной категории'
+    )
+    
+    special_group.add_argument(
+        '--stats',
+        action='store_true',
+        help='Показать статистику библиотеки'
+    )
+    
+    # Группа: Пути
+    paths_group = parser.add_argument_group('Пути')
+    paths_group.add_argument(
         '--library',
         default=str(DEFAULT_LIBRARY),
         help=f'Путь к файлу библиотеки (по умолчанию: {DEFAULT_LIBRARY})'
@@ -302,29 +526,53 @@ def main():
     
     args = parser.parse_args()
     
+    # Проверка: должна быть указана хотя бы одна операция
+    if not args.query and not getattr(args, 'get_category', None) and not args.stats:
+        parser.error('Требуется указать --query, --get-category или --stats')
+    
     # Загружаем библиотеку
     library = StepsLibrary(args.library)
     
     # Создаем поисковик
     searcher = StepsSearcher(library)
     
-    # Выполняем поиск
-    if len(args.query) == 1:
-        # Одиночный запрос - упрощенный формат
-        query = args.query[0]
-        results = searcher.search(query, args.top, args.category)
-        
+    # Выполняем операцию
+    if args.stats:
+        # Статистика библиотеки
+        output = searcher.get_stats()
+    elif getattr(args, 'get_category', None):
+        # Получить все шаги категории
+        steps = searcher.get_category(args.get_category, args.subcategory)
         output = {
-            'query': query,
-            'found': len(results),
-            'results': results
+            'category': args.get_category,
+            'steps': steps,
+            'total': len(steps)
         }
+        if args.subcategory:
+            output['subcategory'] = args.subcategory
     else:
-        # Batch search - полный формат
-        output = searcher.batch_search(args.query, args.top, args.category)
+        # Обычный поиск
+        if len(args.query) == 1:
+            # Одиночный запрос - упрощенный формат
+            query = args.query[0]
+            results = searcher.search(query, args.top, args.category, args.subcategory)
+            
+            output = {
+                'query': query,
+                'found': len(results),
+                'results': results
+            }
+        else:
+            # Batch search - полный формат
+            output = searcher.batch_search(args.query, args.top, args.category, args.subcategory)
     
-    # Выводим результат в JSON
-    print(format_json_output(output))
+    # Выводим результат в нужном формате
+    if args.format == 'json':
+        print(format_json_output(output))
+    elif args.format == 'human':
+        print(format_human_output(output))
+    elif args.format == 'yaml-compact':
+        print(format_yaml_compact_output(output))
 
 
 if __name__ == '__main__':
