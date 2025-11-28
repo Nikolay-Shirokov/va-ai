@@ -206,11 +206,40 @@ class KnowledgeBaseUpdater:
         
         return stats
     
-    def save_files(self, knowledge_base: Dict, statistics: Dict):
+    def create_search_indexes(self):
+        """Создание индексов для search-steps.py"""
+        try:
+            self.log("\nСоздание индексов для search-steps.py...")
+            
+            # Импортируем indexer
+            sys.path.insert(0, str(Path(__file__).parent.parent / 'search-steps'))
+            from indexer import Indexer
+            
+            # Создаем индексатор
+            library_path = self.data_dir / 'library-full.json'
+            indexer = Indexer(str(library_path))
+            
+            # Создаем индексы
+            indexes_dir = self.data_dir / 'indexes'
+            indexer.create_indexes(str(indexes_dir))
+            
+            self.log("Индексы успешно созданы", 'SUCCESS')
+            return True
+            
+        except ImportError:
+            self.log("Модуль indexer.py не найден, пропускаем создание индексов", 'WARN')
+            return False
+        except Exception as e:
+            self.log(f"Ошибка создания индексов: {e}", 'WARN')
+            return False
+    
+    def save_files(self, knowledge_base: Dict, statistics: Dict, create_indexes: bool = False):
         """Сохранение всех файлов"""
         
         if self.dry_run:
             self.log("\n🔍 РЕЖИМ ПРЕДПРОСМОТРА - файлы НЕ будут сохранены", 'DRY')
+            if create_indexes:
+                self.log("Индексы также не будут созданы", 'DRY')
             return
         
         self.log("\nСохранение файлов...")
@@ -247,6 +276,10 @@ class KnowledgeBaseUpdater:
         
         # 5. Обновляем README для data
         self.create_data_readme(statistics)
+        
+        # 6. Создаем индексы для search-steps.py (опционально)
+        if create_indexes:
+            self.create_search_indexes()
     
     def create_ai_knowledge_readme(self, stats: Dict):
         """Создание/обновление README для ai-knowledge"""
@@ -420,7 +453,7 @@ python tools/update_knowledge_base.py path/to/БиблиотекаШагов.jso
         
         print("")
     
-    def update(self):
+    def update(self, create_indexes: bool = False):
         """Главная функция обновления"""
         try:
             self.log("="*70)
@@ -445,7 +478,7 @@ python tools/update_knowledge_base.py path/to/БиблиотекаШагов.jso
             statistics = self.generate_statistics(knowledge_base)
             
             # Сохраняем файлы
-            self.save_files(knowledge_base, statistics)
+            self.save_files(knowledge_base, statistics, create_indexes)
             
             # Итоговая статистика
             self.print_summary()
@@ -506,6 +539,12 @@ def main():
         help='Режим предпросмотра без применения изменений'
     )
     
+    parser.add_argument(
+        '--create-indexes',
+        action='store_true',
+        help='Создать индексы для search-steps.py (требует tools/search-steps/indexer.py)'
+    )
+    
     args = parser.parse_args()
     
     # Создаем апдейтер и запускаем
@@ -515,7 +554,7 @@ def main():
         dry_run=args.dry_run
     )
     
-    success = updater.update()
+    success = updater.update(create_indexes=args.create_indexes)
     
     sys.exit(0 if success else 1)
 

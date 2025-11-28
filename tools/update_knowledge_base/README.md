@@ -67,11 +67,24 @@ python update_knowledge_base.py БиблиотекаШагов.json --dry-run
 python update_knowledge_base.py БиблиотекаШагов.json --output-dir ai-knowledge/
 ```
 
+### Создание индексов для search-steps.py
+
+```bash
+python update_knowledge_base.py БиблиотекаШагов.json --create-indexes
+```
+
+**Что создается:**
+- `data/indexes/index.json` - метаданные индексов
+- `data/indexes/by-keywords.json` - инвертированный индекс (1110 слов)
+- `data/indexes/by-category.json` - категорийный индекс (387 категорий)
+- `data/indexes/frequency.json` - индекс частотности (заглушка)
+
 ### Полный пример
 
 ```bash
 python update_knowledge_base.py /path/to/БиблиотекаШагов.json \
     --output-dir ai-knowledge/ \
+    --create-indexes \
     --dry-run
 ```
 
@@ -109,6 +122,12 @@ python update_knowledge_base.py /path/to/БиблиотекаШагов.json \
 ✅ data/statistics.json
 ✅ ai-knowledge/README.md
 ✅ data/README.md
+
+Создание индексов для search-steps.py... (если --create-indexes)
+✅ data/indexes/index.json
+✅ data/indexes/by-keywords.json (115 KB)
+✅ data/indexes/by-category.json (59 KB)
+✅ data/indexes/frequency.json
 ```
 
 ### Итоговая статистика
@@ -240,6 +259,7 @@ python update_knowledge_base.py БиблиотекаШагов.json --dry-run
 | `source` | Путь к БиблиотекаШагов.json | `upload/БиблиотекаШагов.json` |
 | `--output-dir` | Директория для ai-knowledge | `ai-knowledge` |
 | `--dry-run` | Предпросмотр без изменений | `false` |
+| `--create-indexes` | Создать индексы для search-steps.py | `false` |
 | `--help` | Показать справку | |
 
 ---
