@@ -214,6 +214,9 @@ python update_knowledge_base.py
 
 ### Для пользователей
 
+#### 🌟 Начните здесь
+- **[docs/AI-WORKFLOW-SUMMARY.md](docs/AI-WORKFLOW-SUMMARY.md)** - **Итоговое резюме** всех подходов и стратегий работы с AI ⭐
+
 #### Веб-интерфейс (Claude.ai, ChatGPT)
 - [docs/quick-start.md](docs/quick-start.md) - быстрый старт за 5 минут
 - [docs/which-files-to-use.md](docs/which-files-to-use.md) - какие файлы использовать
@@ -221,10 +224,14 @@ python update_knowledge_base.py
 - [docs/implementation.md](docs/implementation.md) - руководство по внедрению
 
 #### IDE (Kilo Code, Cursor, Continue)
-- [docs/kilo-code-workflow.md](docs/kilo-code-workflow.md) - пошаговое руководство работы с AI в IDE ⭐
+- [docs/kilo-code-cheat-sheet.md](docs/kilo-code-cheat-sheet.md) - **краткая шпаргалка** для быстрого старта (5 мин) 🚀
+- [docs/kilo-code-workflow.md](docs/kilo-code-workflow.md) - пошаговое руководство работы с AI в IDE
 - [docs/project-structure-guide.md](docs/project-structure-guide.md) - организация проекта автотестов
-- [docs/kilo-code-cheat-sheet.md](docs/kilo-code-cheat-sheet.md) - краткая шпаргалка для быстрого старта
-- [templates/prompts/kilo-code-prompts.md](templates/prompts/kilo-code-prompts.md) - библиотека промптов
+- [templates/prompts/kilo-code-prompts.md](templates/prompts/kilo-code-prompts.md) - библиотека готовых промптов
+
+#### Архитектура и расширения
+- [docs/architecture/hybrid-search-workflow.md](docs/architecture/hybrid-search-workflow.md) - гибридный подход с умной подгрузкой шагов
+- [tools/search-steps/README.md](tools/search-steps/README.md) - ТЗ на инструмент умного поиска (в разработке)
 
 ### Для AI-ассистента
 
