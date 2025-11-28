@@ -23,6 +23,15 @@ from pathlib import Path
 from typing import List, Dict, Tuple, Set
 from difflib import SequenceMatcher, get_close_matches
 
+# Импортируем наши модули для семантического анализа
+try:
+    from step_parser import StepParser, ParsedStep
+    from semantic_matcher import SemanticMatcher, SemanticMatch
+    SEMANTIC_ANALYSIS_AVAILABLE = True
+except ImportError:
+    SEMANTIC_ANALYSIS_AVAILABLE = False
+    print("⚠️ Семантический анализ недоступен. Модули step_parser и semantic_matcher не найдены.")
+
 # Настройка кодировки для Windows
 if sys.platform == 'win32':
     import codecs
@@ -52,9 +61,16 @@ class Colors:
 class StepLibrary:
     """Библиотека шагов Vanessa Automation"""
     
-    def __init__(self, library_path: str):
+    def __init__(self, library_path: str, enable_semantic: bool = False):
         self.steps = []
         self.steps_normalized = {}  # нормализованный шаг -> оригинальный шаг
+        self.enable_semantic = enable_semantic and SEMANTIC_ANALYSIS_AVAILABLE
+        
+        # Инициализируем парсер и matcher если доступны
+        if self.enable_semantic:
+            self.parser = StepParser()
+            self.matcher = SemanticMatcher()
+        
         self.load_library(library_path)
     
     def load_library(self, path: str):
@@ -151,6 +167,71 @@ class StepLibrary:
         similar_steps = [s[0] for s in similar[:5]]  # топ-5
         
         return False, "", similar_steps
+    
+    def find_step_with_semantic(self, step: str) -> Dict:
+        """
+        Расширенный поиск с семантическим анализом
+        Возвращает детальную информацию для AI
+        """
+        normalized = self.normalize_step(step)
+        
+        # Точное совпадение
+        if normalized in self.steps_normalized:
+            return {
+                'found': True,
+                'exact_match': self.steps_normalized[normalized],
+                'suggestions': []
+            }
+        
+        # Ищем похожие шаги с семантическим анализом
+        suggestions = []
+        
+        for norm_step, orig_step in self.steps_normalized.items():
+            similarity = SequenceMatcher(None, normalized, norm_step).ratio()
+            
+            if similarity > 0.7:  # порог схожести 70%
+                suggestion_data = {
+                    'text': orig_step,
+                    'similarity': round(similarity, 2)
+                }
+                
+                # Добавляем семантический анализ если включен
+                if self.enable_semantic:
+                    try:
+                        # Парсим оригинальный и предлагаемый шаги
+                        orig_parsed = self.parser.parse(step)
+                        sugg_parsed = self.parser.parse(orig_step)
+                        
+                        # Проводим семантическое сравнение
+                        semantic_match = self.matcher.compare(step, orig_step)
+                        
+                        suggestion_data['parsed'] = {
+                            'action': sugg_parsed.action,
+                            'element_type': sugg_parsed.element_type,
+                            'context': sugg_parsed.context,
+                            'params': sugg_parsed.params
+                        }
+                        
+                        suggestion_data['semantic_match'] = semantic_match.to_dict()
+                        suggestion_data['confidence'] = self.matcher.get_confidence_level(
+                            semantic_match.confidence
+                        )
+                        
+                    except Exception as e:
+                        # Если семантический анализ не удался, продолжаем без него
+                        pass
+                
+                suggestions.append(suggestion_data)
+        
+        # Сортируем по схожести
+        suggestions.sort(key=lambda x: x['similarity'], reverse=True)
+        
+        # Возвращаем топ-5
+        return {
+            'found': False,
+            'exact_match': '',
+            'suggestions': suggestions[:5]
+        }
 
 
 class ScenarioValidator:
@@ -159,9 +240,10 @@ class ScenarioValidator:
     KEYWORDS = ['Дано', 'Когда', 'Тогда', 'И', 'Также', 'Затем', 'Но']
     REQUIRED_HEADERS = ['# encoding:', '# language:']
     
-    def __init__(self, library: StepLibrary, debug: bool = False):
+    def __init__(self, library: StepLibrary, debug: bool = False, ai_enhanced: bool = False):
         self.library = library
         self.debug = debug
+        self.ai_enhanced = ai_enhanced
         self.errors = []
         self.warnings = []
         self.stats = {
@@ -212,16 +294,20 @@ class ScenarioValidator:
             self.errors.append({
                 'line': 1,
                 'type': 'header',
+                'severity': 'auto_fix',
                 'message': 'Отсутствует строка с кодировкой',
-                'suggestion': 'Добавьте в начало файла: # encoding: utf-8'
+                'suggestion': 'Добавьте в начало файла: # encoding: utf-8',
+                'fix': 'add_encoding'
             })
         
         if '# language:' not in first_lines:
             self.errors.append({
                 'line': 1,
                 'type': 'header',
+                'severity': 'auto_fix',
                 'message': 'Отсутствует строка с языком',
-                'suggestion': 'Добавьте в начало файла: # language: ru'
+                'suggestion': 'Добавьте в начало файла: # language: ru',
+                'fix': 'add_language'
             })
     
     def _check_feature_block(self, lines: List[str]):
@@ -298,7 +384,15 @@ class ScenarioValidator:
     
     def _validate_step(self, line_num: int, step: str):
         """Валидация конкретного шага"""
-        found, exact_match, similar = self.library.find_step(step)
+        # Используем расширенный поиск если включен AI-enhanced режим
+        if self.ai_enhanced and self.library.enable_semantic:
+            result = self.library.find_step_with_semantic(step)
+            found = result['found']
+            exact_match = result['exact_match']
+            suggestions = result.get('suggestions', [])
+        else:
+            found, exact_match, similar = self.library.find_step(step)
+            suggestions = [{'text': s} for s in similar]
         
         if found:
             self.stats['valid_steps'] += 1
@@ -316,11 +410,40 @@ class ScenarioValidator:
                 'suggestion': ''
             }
             
-            if similar:
-                error_info['similar_steps'] = similar
+            # Определяем severity на основе наличия рекомендаций и их качества
+            if not suggestions:
+                error_info['severity'] = 'critical'
+            elif self.ai_enhanced and suggestions:
+                # Проверяем наличие безопасных рекомендаций
+                has_safe = any(
+                    s.get('semantic_match', {}).get('is_safe', False)
+                    for s in suggestions
+                )
+                error_info['severity'] = 'semantic_check_required' if has_safe else 'critical'
+            else:
+                error_info['severity'] = 'semantic_check_required'
+            
+            if suggestions:
+                if self.ai_enhanced:
+                    error_info['suggestions'] = suggestions
+                else:
+                    error_info['similar_steps'] = [s['text'] for s in suggestions]
                 error_info['suggestion'] = f'Возможно, вы имели в виду один из этих шагов'
             else:
                 error_info['suggestion'] = 'Проверьте правильность написания шага или используйте другой шаг из библиотеки'
+            
+            # Добавляем parsed информацию для оригинального шага если включен AI-enhanced
+            if self.ai_enhanced and self.library.enable_semantic:
+                try:
+                    orig_parsed = self.library.parser.parse(step)
+                    error_info['parsed'] = {
+                        'action': orig_parsed.action,
+                        'element_type': orig_parsed.element_type,
+                        'context': orig_parsed.context,
+                        'params': orig_parsed.params
+                    }
+                except:
+                    pass
             
             self.errors.append(error_info)
     
@@ -360,8 +483,10 @@ class ScenarioValidator:
                 self.errors.append({
                     'line': i,
                     'type': 'syntax',
+                    'severity': 'auto_fix',
                     'message': 'Использованы одинарные кавычки вместо двойных',
-                    'suggestion': 'Замените одинарные кавычки \' на двойные "'
+                    'suggestion': 'Замените одинарные кавычки \' на двойные "',
+                    'fix': 'replace_quotes'
                 })
 
 
@@ -471,6 +596,56 @@ def print_compact_report(result: Dict):
     print("---")
 
 
+def print_ai_enhanced_report(result: Dict):
+    """Вывод отчета в расширенном формате YAML для AI"""
+    import yaml
+    
+    errors = result.get('errors', [])
+    warnings = result.get('warnings', [])
+    
+    # Убираем лишние детали для чистоты YAML
+    clean_errors = []
+    for error in errors:
+        # Копируем чтобы не изменять оригинал
+        err_copy = error.copy()
+        
+        # Удаляем поля, которые не нужны в AI-отчете
+        err_copy.pop('message', None)
+        err_copy.pop('suggestion', None)
+        err_copy.pop('similar_steps', None)
+        
+        # Оставляем только 'text' в suggestions если нет семантики
+        if 'suggestions' in err_copy and err_copy['suggestions']:
+            if 'semantic_match' not in err_copy['suggestions'][0]:
+                err_copy['suggestions'] = [s['text'] for s in err_copy['suggestions']]
+        
+        clean_errors.append(err_copy)
+        
+    report = {
+        'report': {
+            'errors': clean_errors,
+            'warnings': warnings,
+            'stats': result.get('stats', {})
+        }
+    }
+    
+    # Используем yaml для красивого вывода
+    # allow_unicode=True для поддержки кириллицы
+    # sort_keys=False для сохранения порядка
+    print("---")
+    try:
+        # Пытаемся использовать PyYAML если он установлен
+        print(yaml.dump(report, allow_unicode=True, sort_keys=False, indent=2))
+    except ImportError:
+        # Если нет - используем json.dumps с отступами
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+    except Exception as e:
+        # На случай других ошибок сериализации
+        print(json.dumps(report, ensure_ascii=False, indent=2))
+        
+    print("---")
+
+
 def print_recommendations_for_ai(result: Dict):
     """Вывод рекомендаций в формате для AI-ассистента"""
     errors = result['errors']
@@ -536,6 +711,11 @@ def main():
         help='Вывод рекомендаций в формате для AI-ассистента'
     )
     parser.add_argument(
+        '--ai-enhanced',
+        action='store_true',
+        help='Вывод в расширенном YAML-формате для AI с семантическим анализом'
+    )
+    parser.add_argument(
         '--compact', '-c',
         action='store_true',
         help='Вывод в компактном формате (для экономии токенов)'
@@ -561,11 +741,11 @@ def main():
     print(f"\n{Colors.BOLD}Валидация сценария: {args.scenario}{Colors.END}")
     print(f"Библиотека шагов: {args.library}\n")
     
-    # Загружаем библиотеку
-    library = StepLibrary(args.library)
+    # Загружаем библиотеку с учетом семантического анализа
+    library = StepLibrary(args.library, enable_semantic=args.ai_enhanced)
     
     # Валидируем сценарий
-    validator = ScenarioValidator(library, debug=args.debug)
+    validator = ScenarioValidator(library, debug=args.debug, ai_enhanced=args.ai_enhanced)
     result = validator.validate_file(args.scenario)
     
     if 'error' in result:
@@ -573,7 +753,9 @@ def main():
         sys.exit(1)
     
     # Выводим отчет в нужном формате
-    if args.compact:
+    if args.ai_enhanced:
+        print_ai_enhanced_report(result)
+    elif args.compact:
         print_compact_report(result)
     elif args.ai_format:
         print_report(result, verbose=args.verbose)

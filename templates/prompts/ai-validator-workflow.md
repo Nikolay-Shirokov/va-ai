@@ -94,6 +94,7 @@ if attempt >= MAX_ATTEMPTS:
 - `steps-library.json` - 1569 шагов
 - `semantic-validation-guide.md` - правила проверки рекомендаций
 - Валидатор: `python tools/validator/validate.py scenario.feature --ai-enhanced`
+- **ЗАЩИТА ОТ ЗАЦИКЛИВАНИЯ**: максимум 3 попытки исправления, затем - к пользователю
 
 ## Workflow генерации сценария:
 
@@ -123,7 +124,7 @@ semantic_errors = [e for e in errors if e.severity == "semantic_check_required"]
 critical_errors = [e for e in errors if e.severity == "critical"]
 ```
 
-### Шаг 4: Применение исправлений
+### Шаг 4: Применение исправлений (счетчик попыток)
 
 #### Уровень 1: Автоисправление (без вопросов)
 ```python
@@ -172,7 +173,7 @@ for error in critical_errors:
     escalate_to_user(error, reason="No suitable suggestions")
 ```
 
-### Шаг 5: Защита от зацикливания
+### Шаг 5: Защита от зацикливания (обязательно)
 ```python
 attempt_counter = 0
 MAX_ATTEMPTS = 3
