@@ -41,3 +41,7 @@ temp_debug/
 
 # Логи и метрики
 data/metrics.jsonl
+
+# Генерируемые индексы для search-steps
+# Пересоздаются командой: python tools/search-steps/indexer.py
+data/indexes/
