@@ -34,6 +34,7 @@ if sys.platform == 'win32':
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent
 DEFAULT_LIBRARY = PROJECT_ROOT / 'data' / 'library-full.json'
+DEFAULT_INDEX_DIR = PROJECT_ROOT / 'data' / 'indexes'
 
 
 class StepsLibrary:
@@ -162,14 +163,49 @@ class StepsLibrary:
 class StepsSearcher:
     """Поиск и ранжирование шагов"""
     
-    def __init__(self, library: StepsLibrary):
+    def __init__(self, library: StepsLibrary, index_dir: str = None):
         """
         Инициализация поисковика
         
         Args:
             library: Загруженная библиотека шагов
+            index_dir: Директория с индексами (опционально)
         """
         self.library = library
+        self.indexes_loaded = False
+        self.keyword_index = {}
+        self.category_index = {}
+        
+        # Пытаемся загрузить индексы если указана директория
+        if index_dir:
+            self.load_indexes(index_dir)
+    
+    def load_indexes(self, index_dir: str):
+        """
+        Загрузка индексов из директории
+        
+        Args:
+            index_dir: Путь к директории с индексами
+        """
+        try:
+            index_path = Path(index_dir)
+            
+            # Проверяем наличие индексов
+            if not (index_path / 'by-keywords.json').exists():
+                return
+            
+            # Загружаем индексы
+            with open(index_path / 'by-keywords.json', 'r', encoding='utf-8') as f:
+                self.keyword_index = json.load(f)
+            
+            with open(index_path / 'by-category.json', 'r', encoding='utf-8') as f:
+                self.category_index = json.load(f)
+            
+            self.indexes_loaded = True
+            
+        except Exception:
+            # В случае ошибки просто не используем индексы
+            self.indexes_loaded = False
     
     def search(self, query: str, top_n: int = 10, category: str = None, subcategory: str = None) -> List[Dict]:
         """
@@ -183,6 +219,26 @@ class StepsSearcher:
             
         Returns:
             Список найденных шагов с релевантностью
+        """
+        # Используем индексированный поиск если доступен
+        if self.indexes_loaded and category:
+            return self._search_with_index(query, top_n, category, subcategory)
+        
+        # Иначе прямой поиск
+        return self._search_direct(query, top_n, category, subcategory)
+    
+    def _search_direct(self, query: str, top_n: int = 10, category: str = None, subcategory: str = None) -> List[Dict]:
+        """
+        Прямой поиск без использования индексов
+        
+        Args:
+            query: Поисковый запрос
+            top_n: Количество результатов
+            category: Фильтр по категории
+            subcategory: Фильтр по подкатегории
+            
+        Returns:
+            Список найденных шагов
         """
         # Нормализуем запрос
         normalized_query = self.library.normalize_step(query)
@@ -220,6 +276,57 @@ class StepsSearcher:
         matches.sort(key=lambda x: x['relevance'], reverse=True)
         
         # Возвращаем топ-N результатов
+        return matches[:top_n]
+    
+    def _search_with_index(self, query: str, top_n: int = 10, category: str = None, subcategory: str = None) -> List[Dict]:
+        """
+        Индексированный поиск (быстрее)
+        
+        Args:
+            query: Поисковый запрос
+            top_n: Количество результатов
+            category: Фильтр по категории
+            subcategory: Фильтр по подкатегории
+            
+        Returns:
+            Список найденных шагов
+        """
+        # Формируем ключ категории
+        cat_key = category
+        if subcategory:
+            cat_key = f"{category}.{subcategory}"
+        
+        # Получаем индексы шагов для этой категории
+        if cat_key not in self.category_index:
+            return []
+        
+        candidate_indices = set(self.category_index[cat_key])
+        
+        # Нормализуем запрос и ищем среди кандидатов
+        normalized_query = self.library.normalize_step(query)
+        
+        matches = []
+        for idx in candidate_indices:
+            step_info = self.library.steps[idx]
+            norm_step = self.library.normalize_step(step_info['step'])
+            
+            # Вычисляем схожесть
+            ratio = SequenceMatcher(None, normalized_query, norm_step).ratio()
+            
+            if ratio > 0.3:
+                result = {
+                    'step': step_info['step'],
+                    'category': step_info['category'],
+                    'relevance': round(ratio, 2)
+                }
+                
+                if step_info['subcategory']:
+                    result['subcategory'] = step_info['subcategory']
+                
+                matches.append(result)
+        
+        # Сортируем и возвращаем топ-N
+        matches.sort(key=lambda x: x['relevance'], reverse=True)
         return matches[:top_n]
     
     def batch_search(self, queries: List[str], top_n: int = 10, category: str = None, subcategory: str = None) -> Dict:
@@ -533,8 +640,9 @@ def main():
     # Загружаем библиотеку
     library = StepsLibrary(args.library)
     
-    # Создаем поисковик
-    searcher = StepsSearcher(library)
+    # Создаем поисковик с поддержкой индексов
+    index_dir = str(DEFAULT_INDEX_DIR) if DEFAULT_INDEX_DIR.exists() else None
+    searcher = StepsSearcher(library, index_dir)
     
     # Выполняем операцию
     if args.stats:
