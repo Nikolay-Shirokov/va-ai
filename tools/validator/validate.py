@@ -27,10 +27,11 @@ from difflib import SequenceMatcher, get_close_matches
 try:
     from step_parser import StepParser, ParsedStep
     from semantic_matcher import SemanticMatcher, SemanticMatch
+    from metrics_logger import MetricsLogger
     SEMANTIC_ANALYSIS_AVAILABLE = True
 except ImportError:
     SEMANTIC_ANALYSIS_AVAILABLE = False
-    print("⚠️ Семантический анализ недоступен. Модули step_parser и semantic_matcher не найдены.")
+    print("⚠️ Семантический анализ и логирование метрик недоступны. Модули не найдены.")
 
 # Настройка кодировки для Windows
 if sys.platform == 'win32':
@@ -42,6 +43,7 @@ if sys.platform == 'win32':
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent.parent
 DEFAULT_LIBRARY = PROJECT_ROOT / 'data' / 'library-full.json'
+METRICS_FILE = PROJECT_ROOT / 'data' / 'metrics.jsonl'
 
 
 class Colors:
@@ -240,10 +242,11 @@ class ScenarioValidator:
     KEYWORDS = ['Дано', 'Когда', 'Тогда', 'И', 'Также', 'Затем', 'Но']
     REQUIRED_HEADERS = ['# encoding:', '# language:']
     
-    def __init__(self, library: StepLibrary, debug: bool = False, ai_enhanced: bool = False):
+    def __init__(self, library: StepLibrary, debug: bool = False, ai_enhanced: bool = False, logger: 'MetricsLogger' = None):
         self.library = library
         self.debug = debug
         self.ai_enhanced = ai_enhanced
+        self.logger = logger
         self.errors = []
         self.warnings = []
         self.stats = {
@@ -446,6 +449,10 @@ class ScenarioValidator:
                     pass
             
             self.errors.append(error_info)
+            
+            # Логируем событие, если логгер включен
+            if self.logger:
+                self.logger.log_event('step_not_found', error_info)
     
     def _check_variables(self, lines: List[str]):
         """Проверка правильности использования переменных"""
@@ -480,14 +487,17 @@ class ScenarioValidator:
         for i, line in enumerate(lines, 1):
             # Проверяем одинарные кавычки
             if "'" in line and any(line.strip().startswith(kw) for kw in self.KEYWORDS):
-                self.errors.append({
+                error_info = {
                     'line': i,
                     'type': 'syntax',
                     'severity': 'auto_fix',
                     'message': 'Использованы одинарные кавычки вместо двойных',
                     'suggestion': 'Замените одинарные кавычки \' на двойные "',
                     'fix': 'replace_quotes'
-                })
+                }
+                self.errors.append(error_info)
+                if self.logger:
+                    self.logger.log_event('auto_fix_suggestion', error_info)
 
 
 def print_report(result: Dict, verbose: bool = False):
@@ -725,6 +735,11 @@ def main():
         action='store_true',
         help='Включает режим отладки с выводом каждого успешного шага'
     )
+    parser.add_argument(
+        '--log-metrics',
+        action='store_true',
+        help='Включает логирование метрик в data/metrics.jsonl'
+    )
     
     args = parser.parse_args()
     
@@ -741,11 +756,17 @@ def main():
     print(f"\n{Colors.BOLD}Валидация сценария: {args.scenario}{Colors.END}")
     print(f"Библиотека шагов: {args.library}\n")
     
+    # Инициализируем логгер, если нужно
+    logger = None
+    if args.log_metrics and SEMANTIC_ANALYSIS_AVAILABLE:
+        logger = MetricsLogger(METRICS_FILE)
+        print(f"📝 Логирование метрик включено. Файл: {METRICS_FILE}")
+
     # Загружаем библиотеку с учетом семантического анализа
     library = StepLibrary(args.library, enable_semantic=args.ai_enhanced)
     
     # Валидируем сценарий
-    validator = ScenarioValidator(library, debug=args.debug, ai_enhanced=args.ai_enhanced)
+    validator = ScenarioValidator(library, debug=args.debug, ai_enhanced=args.ai_enhanced, logger=logger)
     result = validator.validate_file(args.scenario)
     
     if 'error' in result:

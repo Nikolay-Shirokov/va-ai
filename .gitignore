@@ -38,3 +38,6 @@ validation_report.txt
 
 # Temporary debug files
 temp_debug/
+
+# Логи и метрики
+data/metrics.jsonl
