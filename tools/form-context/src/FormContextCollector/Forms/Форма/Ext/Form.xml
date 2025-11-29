@@ -335,14 +335,20 @@
 						</v8:StringQualifiers>
 					</Type>
 				</Column>
-				<Column name="СсылкаНаФорму" id="6">
+				<Column name="УИДФормы" id="6">
 					<Title>
 						<v8:item>
 							<v8:lang>ru</v8:lang>
-							<v8:content>Ссылка на форму</v8:content>
+							<v8:content>УИД формы</v8:content>
 						</v8:item>
 					</Title>
-					<Type/>
+					<Type>
+						<v8:Type>xs:string</v8:Type>
+						<v8:StringQualifiers>
+							<v8:Length>36</v8:Length>
+							<v8:AllowedLength>Variable</v8:AllowedLength>
+						</v8:StringQualifiers>
+					</Type>
 				</Column>
 			</Columns>
 		</Attribute>
