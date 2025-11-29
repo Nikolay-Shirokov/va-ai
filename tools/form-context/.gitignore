@@ -1,0 +1,23 @@
+# Временные файлы сборки
+agent/
+*.log
+
+# Скомпилированный EPF (пересобирается из src/)
+FormContextCollector.epf
+
+# Временные базы данных 1С
+temp_ib/
+*.1CD
+
+# Кэш и временные файлы
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
