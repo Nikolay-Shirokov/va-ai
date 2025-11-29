@@ -2,11 +2,16 @@
 <Form xmlns="http://v8.1c.ru/8.3/xcf/logform" xmlns:app="http://v8.1c.ru/8.2/managed-application/core" xmlns:cfg="http://v8.1c.ru/8.1/data/enterprise/current-config" xmlns:dcscor="http://v8.1c.ru/8.1/data-composition-system/core" xmlns:dcssch="http://v8.1c.ru/8.1/data-composition-system/schema" xmlns:dcsset="http://v8.1c.ru/8.1/data-composition-system/settings" xmlns:ent="http://v8.1c.ru/8.1/data/enterprise" xmlns:lf="http://v8.1c.ru/8.2/managed-application/logform" xmlns:style="http://v8.1c.ru/8.1/data/ui/style" xmlns:sys="http://v8.1c.ru/8.1/data/ui/fonts/system" xmlns:v8="http://v8.1c.ru/8.1/data/core" xmlns:v8ui="http://v8.1c.ru/8.1/data/ui" xmlns:web="http://v8.1c.ru/8.1/data/ui/colors/web" xmlns:win="http://v8.1c.ru/8.1/data/ui/colors/windows" xmlns:xr="http://v8.1c.ru/8.3/xcf/readable" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.17">
 	<AutoCommandBar name="ФормаКоманднаяПанель" id="-1">
 		<ChildItems>
-			<Button name="СобратьКонтекстФормы" id="20">
+			<Button name="ОбновитьСписокФорм" id="30">
+				<Type>CommandBarButton</Type>
+				<CommandName>Form.Command.ОбновитьСписокФорм</CommandName>
+				<ExtendedTooltip name="ОбновитьСписокФормРасширеннаяПодсказка" id="31"/>
+			</Button>
+			<Button name="СобратьКонтекст" id="20">
 				<Type>CommandBarButton</Type>
 				<DefaultButton>true</DefaultButton>
-				<CommandName>Form.Command.СобратьКонтекстФормы</CommandName>
-				<ExtendedTooltip name="СобратьКонтекстФормыРасширеннаяПодсказка" id="21"/>
+				<CommandName>Form.Command.СобратьКонтекст</CommandName>
+				<ExtendedTooltip name="СобратьКонтекстРасширеннаяПодсказка" id="21"/>
 			</Button>
 			<Button name="Очистить" id="22">
 				<Type>CommandBarButton</Type>
@@ -16,74 +21,162 @@
 		</ChildItems>
 	</AutoCommandBar>
 	<Events>
+		<Event name="OnOpen">ПриОткрытии</Event>
 		<Event name="OnCreateAtServer">ПриСозданииНаСервере</Event>
 	</Events>
 	<ChildItems>
-		<UsualGroup name="ГруппаНастройки" id="1">
+		<UsualGroup name="ГруппаОсновная" id="40">
 			<Title>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
-					<v8:content>Настройки</v8:content>
+					<v8:content>Основная группа</v8:content>
 				</v8:item>
 			</Title>
-			<ToolTip>
-				<v8:item>
-					<v8:lang>ru</v8:lang>
-					<v8:content>Группа настройки</v8:content>
-				</v8:item>
-			</ToolTip>
 			<Group>Vertical</Group>
 			<ShowTitle>false</ShowTitle>
-			<ExtendedTooltip name="ГруппаНастройкиРасширеннаяПодсказка" id="2"/>
+			<ExtendedTooltip name="ГруппаОсновнаяРасширеннаяПодсказка" id="41"/>
 			<ChildItems>
-				<InputField name="ПутьКФайлуВыгрузки" id="3">
-					<DataPath>Объект.ПутьКФайлуВыгрузки</DataPath>
-					<ChoiceButton>true</ChoiceButton>
-					<ExtendedEditMultipleValues>true</ExtendedEditMultipleValues>
-					<ContextMenu name="ПутьКФайлуВыгрузкиКонтекстноеМеню" id="4"/>
-					<ExtendedTooltip name="ПутьКФайлуВыгрузкиРасширеннаяПодсказка" id="5"/>
-					<Events>
-						<Event name="StartChoice">ПутьКФайлуВыгрузкиНачалоВыбора</Event>
-					</Events>
-				</InputField>
-				<CheckBoxField name="ВключатьТабличныеЧасти" id="6">
-					<DataPath>Объект.ВключатьТабличныеЧасти</DataPath>
-					<CheckBoxType>Auto</CheckBoxType>
-					<ContextMenu name="ВключатьТабличныеЧастиКонтекстноеМеню" id="7"/>
-					<ExtendedTooltip name="ВключатьТабличныеЧастиРасширеннаяПодсказка" id="8"/>
-				</CheckBoxField>
-				<CheckBoxField name="ВключатьКоманды" id="9">
-					<DataPath>Объект.ВключатьКоманды</DataPath>
-					<CheckBoxType>Auto</CheckBoxType>
-					<ContextMenu name="ВключатьКомандыКонтекстноеМеню" id="10"/>
-					<ExtendedTooltip name="ВключатьКомандыРасширеннаяПодсказка" id="11"/>
-				</CheckBoxField>
-				<InputField name="МаксимальнаяГлубинаВложенности" id="12">
-					<DataPath>Объект.МаксимальнаяГлубинаВложенности</DataPath>
-					<ExtendedEditMultipleValues>true</ExtendedEditMultipleValues>
-					<ContextMenu name="МаксимальнаяГлубинаВложенностиКонтекстноеМеню" id="13"/>
-					<ExtendedTooltip name="МаксимальнаяГлубинаВложенностиРасширеннаяПодсказка" id="14"/>
-				</InputField>
-				<CheckBoxField name="ВключатьНевидимыеЭлементы" id="15">
-					<DataPath>Объект.ВключатьНевидимыеЭлементы</DataPath>
-					<CheckBoxType>Auto</CheckBoxType>
-					<ContextMenu name="ВключатьНевидимыеЭлементыКонтекстноеМеню" id="16"/>
-					<ExtendedTooltip name="ВключатьНевидимыеЭлементыРасширеннаяПодсказка" id="17"/>
-				</CheckBoxField>
+				<Table name="СписокФорм" id="50">
+					<Representation>List</Representation>
+					<ChangeRowSet>true</ChangeRowSet>
+					<ChangeRowOrder>true</ChangeRowOrder>
+					<AutoInsertNewRow>true</AutoInsertNewRow>
+					<EnableStartDrag>true</EnableStartDrag>
+					<EnableDrag>true</EnableDrag>
+					<DataPath>СписокФорм</DataPath>
+					<RowFilter xsi:nil="true"/>
+					<ContextMenu name="СписокФормКонтекстноеМеню" id="51"/>
+					<AutoCommandBar name="СписокФормКоманднаяПанель" id="52"/>
+					<ExtendedTooltip name="СписокФормРасширеннаяПодсказка" id="53"/>
+					<SearchStringLocation>None</SearchStringLocation>
+					<ViewStatusLocation>None</ViewStatusLocation>
+					<SearchControlLocation>None</SearchControlLocation>
+					<ChildItems>
+						<CheckBoxField name="СписокФормВыбрано" id="54">
+							<DataPath>СписокФорм.Выбрано</DataPath>
+							<EditMode>Enter</EditMode>
+							<ContextMenu name="СписокФормВыбраноКонтекстноеМеню" id="55"/>
+							<ExtendedTooltip name="СписокФормВыбраноРасширеннаяПодсказка" id="56"/>
+						</CheckBoxField>
+						<InputField name="СписокФормЗаголовок" id="57">
+							<DataPath>СписокФорм.Заголовок</DataPath>
+							<EditMode>EnterOnInput</EditMode>
+							<ContextMenu name="СписокФормЗаголовокКонтекстноеМеню" id="58"/>
+							<ExtendedTooltip name="СписокФормЗаголовокРасширеннаяПодсказка" id="59"/>
+						</InputField>
+						<InputField name="СписокФормВидОбъекта" id="60">
+							<DataPath>СписокФорм.ВидОбъекта</DataPath>
+							<EditMode>EnterOnInput</EditMode>
+							<ContextMenu name="СписокФормВидОбъектаКонтекстноеМеню" id="61"/>
+							<ExtendedTooltip name="СписокФормВидОбъектаРасширеннаяПодсказка" id="62"/>
+						</InputField>
+						<InputField name="СписокФормТипФормы" id="63">
+							<DataPath>СписокФорм.ТипФормы</DataPath>
+							<ReadOnly>true</ReadOnly>
+							<EditMode>EnterOnInput</EditMode>
+							<ContextMenu name="СписокФормТипФормыКонтекстноеМеню" id="64"/>
+							<ExtendedTooltip name="СписокФормТипФормыРасширеннаяПодсказка" id="65"/>
+						</InputField>
+					</ChildItems>
+				</Table>
+				<UsualGroup name="ГруппаНастройки" id="1">
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Настройки</v8:content>
+						</v8:item>
+					</Title>
+					<ToolTip>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Параметры сбора контекста</v8:content>
+						</v8:item>
+					</ToolTip>
+					<Group>Vertical</Group>
+					<Representation>NormalSeparation</Representation>
+					<ShowTitle>true</ShowTitle>
+					<ExtendedTooltip name="ГруппаНастройкиРасширеннаяПодсказка" id="2"/>
+					<ChildItems>
+						<InputField name="ПутьСохранения" id="3">
+							<DataPath>Объект.ПутьСохранения</DataPath>
+							<Title>
+								<v8:item>
+									<v8:lang>ru</v8:lang>
+									<v8:content>Путь сохранения</v8:content>
+								</v8:item>
+							</Title>
+							<ChoiceButton>true</ChoiceButton>
+							<ContextMenu name="ПутьСохраненияКонтекстноеМеню" id="4"/>
+							<ExtendedTooltip name="ПутьСохраненияРасширеннаяПодсказка" id="5"/>
+							<Events>
+								<Event name="StartChoice">ПутьСохраненияНачалоВыбора</Event>
+							</Events>
+						</InputField>
+						<CheckBoxField name="ВключатьНевидимыеЭлементы" id="15">
+							<DataPath>Объект.ВключатьНевидимыеЭлементы</DataPath>
+							<Title>
+								<v8:item>
+									<v8:lang>ru</v8:lang>
+									<v8:content>Включать невидимые элементы</v8:content>
+								</v8:item>
+							</Title>
+							<CheckBoxType>Auto</CheckBoxType>
+							<ContextMenu name="ВключатьНевидимыеЭлементыКонтекстноеМеню" id="16"/>
+							<ExtendedTooltip name="ВключатьНевидимыеЭлементыРасширеннаяПодсказка" id="17"/>
+						</CheckBoxField>
+						<CheckBoxField name="ГенерироватьMarkdown" id="18">
+							<DataPath>Объект.ГенерироватьMarkdown</DataPath>
+							<Title>
+								<v8:item>
+									<v8:lang>ru</v8:lang>
+									<v8:content>Генерировать Markdown</v8:content>
+								</v8:item>
+							</Title>
+							<CheckBoxType>Auto</CheckBoxType>
+							<ContextMenu name="ГенерироватьMarkdownКонтекстноеМеню" id="19"/>
+							<ExtendedTooltip name="ГенерироватьMarkdownРасширеннаяПодсказка" id="70"/>
+						</CheckBoxField>
+						<InputField name="МаксимальнаяГлубинаВложенности" id="12">
+							<DataPath>Объект.МаксимальнаяГлубинаВложенности</DataPath>
+							<Title>
+								<v8:item>
+									<v8:lang>ru</v8:lang>
+									<v8:content>Макс. глубина вложенности</v8:content>
+								</v8:item>
+							</Title>
+							<ContextMenu name="МаксимальнаяГлубинаВложенностиКонтекстноеМеню" id="13"/>
+							<ExtendedTooltip name="МаксимальнаяГлубинаВложенностиРасширеннаяПодсказка" id="14"/>
+						</InputField>
+					</ChildItems>
+				</UsualGroup>
+				<LabelField name="СтатусСбора" id="24">
+					<DataPath>СтатусСбора</DataPath>
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Статус</v8:content>
+						</v8:item>
+					</Title>
+					<TitleLocation>Top</TitleLocation>
+					<ContextMenu name="СтатусСбораКонтекстноеМеню" id="25"/>
+					<ExtendedTooltip name="СтатусСбораРасширеннаяПодсказка" id="26"/>
+				</LabelField>
+				<TextDocumentField name="РезультатСбора" id="27">
+					<DataPath>РезультатСбора</DataPath>
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Результаты сбора</v8:content>
+						</v8:item>
+					</Title>
+					<ReadOnly>true</ReadOnly>
+					<TitleLocation>Top</TitleLocation>
+					<Height>10</Height>
+					<ContextMenu name="РезультатСбораКонтекстноеМеню" id="28"/>
+					<ExtendedTooltip name="РезультатСбораРасширеннаяПодсказка" id="29"/>
+				</TextDocumentField>
 			</ChildItems>
 		</UsualGroup>
-		<LabelField name="СтатусСбора" id="24">
-			<DataPath>СтатусСбора</DataPath>
-			<ContextMenu name="СтатусСбораКонтекстноеМеню" id="25"/>
-			<ExtendedTooltip name="СтатусСбораРасширеннаяПодсказка" id="26"/>
-		</LabelField>
-		<TextDocumentField name="РезультатСбора" id="27">
-			<DataPath>РезультатСбора</DataPath>
-			<ReadOnly>true</ReadOnly>
-			<TitleLocation>Top</TitleLocation>
-			<ContextMenu name="РезультатСбораКонтекстноеМеню" id="28"/>
-			<ExtendedTooltip name="РезультатСбораРасширеннаяПодсказка" id="29"/>
-		</TextDocumentField>
 	</ChildItems>
 	<Attributes>
 		<Attribute name="Объект" id="1">
@@ -122,9 +215,122 @@
 				</v8:StringQualifiers>
 			</Type>
 		</Attribute>
+		<Attribute name="СписокФорм" id="4">
+			<Title>
+				<v8:item>
+					<v8:lang>ru</v8:lang>
+					<v8:content>Список форм</v8:content>
+				</v8:item>
+			</Title>
+			<Type>
+				<v8:Type>v8:ValueTable</v8:Type>
+			</Type>
+			<Columns>
+				<Column name="Выбрано" id="1">
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>✓</v8:content>
+						</v8:item>
+					</Title>
+					<Type>
+						<v8:Type>xs:boolean</v8:Type>
+					</Type>
+				</Column>
+				<Column name="Заголовок" id="2">
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Заголовок формы</v8:content>
+						</v8:item>
+					</Title>
+					<Type>
+						<v8:Type>xs:string</v8:Type>
+						<v8:StringQualifiers>
+							<v8:Length>200</v8:Length>
+							<v8:AllowedLength>Variable</v8:AllowedLength>
+						</v8:StringQualifiers>
+					</Type>
+				</Column>
+				<Column name="ПолноеИмяФормы" id="3">
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Полное имя формы</v8:content>
+						</v8:item>
+					</Title>
+					<Type>
+						<v8:Type>xs:string</v8:Type>
+						<v8:StringQualifiers>
+							<v8:Length>300</v8:Length>
+							<v8:AllowedLength>Variable</v8:AllowedLength>
+						</v8:StringQualifiers>
+					</Type>
+				</Column>
+				<Column name="ВидОбъекта" id="4">
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Вид объекта</v8:content>
+						</v8:item>
+					</Title>
+					<Type>
+						<v8:Type>xs:string</v8:Type>
+						<v8:StringQualifiers>
+							<v8:Length>50</v8:Length>
+							<v8:AllowedLength>Variable</v8:AllowedLength>
+						</v8:StringQualifiers>
+					</Type>
+				</Column>
+				<Column name="ТипФормы" id="5">
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Тип формы</v8:content>
+						</v8:item>
+					</Title>
+					<Type>
+						<v8:Type>xs:string</v8:Type>
+						<v8:StringQualifiers>
+							<v8:Length>50</v8:Length>
+							<v8:AllowedLength>Variable</v8:AllowedLength>
+						</v8:StringQualifiers>
+					</Type>
+				</Column>
+				<Column name="СсылкаНаФорму" id="6">
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Ссылка на форму</v8:content>
+						</v8:item>
+					</Title>
+					<Type/>
+				</Column>
+			</Columns>
+		</Attribute>
 	</Attributes>
 	<Commands>
-		<Command name="СобратьКонтекстФормы" id="1">
+		<Command name="ОбновитьСписокФорм" id="3">
+			<Title>
+				<v8:item>
+					<v8:lang>ru</v8:lang>
+					<v8:content>Обновить список</v8:content>
+				</v8:item>
+			</Title>
+			<ToolTip>
+				<v8:item>
+					<v8:lang>ru</v8:lang>
+					<v8:content>Обновить список открытых форм</v8:content>
+				</v8:item>
+			</ToolTip>
+			<Picture>
+				<xr:Ref>StdPicture.Refresh</xr:Ref>
+				<xr:LoadTransparent>true</xr:LoadTransparent>
+			</Picture>
+			<Action>ОбновитьСписокФорм</Action>
+			<Representation>TextPicture</Representation>
+		</Command>
+		<Command name="СобратьКонтекст" id="1">
 			<Title>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
@@ -134,14 +340,14 @@
 			<ToolTip>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
-					<v8:content>Собрать контекст формы</v8:content>
+					<v8:content>Собрать контекст выбранных форм</v8:content>
 				</v8:item>
 			</ToolTip>
 			<Picture>
-				<xr:Ref>StdPicture.Refresh</xr:Ref>
+				<xr:Ref>StdPicture.CreateListItem</xr:Ref>
 				<xr:LoadTransparent>true</xr:LoadTransparent>
 			</Picture>
-			<Action>СобратьКонтекстФормы</Action>
+			<Action>СобратьКонтекст</Action>
 			<Representation>TextPicture</Representation>
 		</Command>
 		<Command name="Очистить" id="2">
@@ -154,7 +360,7 @@
 			<ToolTip>
 				<v8:item>
 					<v8:lang>ru</v8:lang>
-					<v8:content>Очистить</v8:content>
+					<v8:content>Очистить результаты</v8:content>
 				</v8:item>
 			</ToolTip>
 			<Action>Очистить</Action>
