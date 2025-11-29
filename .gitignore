@@ -40,6 +40,10 @@ validation_report.txt
 # Temporary debug files
 temp_debug/
 
+# Form Context Collector debug logs
+tools/form-context/debug.log
+tools/form-context/src/debug.log
+
 # Логи и метрики
 data/metrics.jsonl
 

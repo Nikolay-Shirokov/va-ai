@@ -162,6 +162,18 @@
 							<ContextMenu name="ГенерироватьMarkdownКонтекстноеМеню" id="19"/>
 							<ExtendedTooltip name="ГенерироватьMarkdownРасширеннаяПодсказка" id="70"/>
 						</CheckBoxField>
+						<CheckBoxField name="РежимОтладки" id="80">
+							<DataPath>Объект.РежимОтладки</DataPath>
+							<Title>
+								<v8:item>
+									<v8:lang>ru</v8:lang>
+									<v8:content>Режим отладки (лог в файл)</v8:content>
+								</v8:item>
+							</Title>
+							<CheckBoxType>Auto</CheckBoxType>
+							<ContextMenu name="РежимОтладкиКонтекстноеМеню" id="81"/>
+							<ExtendedTooltip name="РежимОтладкиРасширеннаяПодсказка" id="82"/>
+						</CheckBoxField>
 						<InputField name="МаксимальнаяГлубинаВложенности" id="12">
 							<DataPath>Объект.МаксимальнаяГлубинаВложенности</DataPath>
 							<Title>
