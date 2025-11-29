@@ -91,6 +91,13 @@
 							<ContextMenu name="СписокФормЗаголовокКонтекстноеМеню" id="58"/>
 							<ExtendedTooltip name="СписокФормЗаголовокРасширеннаяПодсказка" id="59"/>
 						</InputField>
+						<InputField name="СписокФормПолноеИмяФормы" id="66">
+							<DataPath>СписокФорм.ПолноеИмяФормы</DataPath>
+							<ReadOnly>true</ReadOnly>
+							<EditMode>EnterOnInput</EditMode>
+							<ContextMenu name="СписокФормПолноеИмяФормыКонтекстноеМеню" id="67"/>
+							<ExtendedTooltip name="СписокФормПолноеИмяФормыРасширеннаяПодсказка" id="68"/>
+						</InputField>
 						<InputField name="СписокФормВидОбъекта" id="60">
 							<DataPath>СписокФорм.ВидОбъекта</DataPath>
 							<EditMode>EnterOnInput</EditMode>
