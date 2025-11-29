@@ -1,12 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<Form xmlns="http://v8.1c.ru/8.3/xcf/logform" xmlns:app="http://v8.1c.ru/8.2/managed-application/core" xmlns:cfg="http://v8.1c.ru/8.1/data/enterprise/current-config" xmlns:dcscor="http://v8.1c.ru/8.1/data-composition-system/core" xmlns:dcssch="http://v8.1c.ru/8.1/data-composition-system/schema" xmlns:dcsset="http://v8.1c.ru/8.1/data-composition-system/settings" xmlns:ent="http://v8.1c.ru/8.1/data/enterprise" xmlns:lf="http://v8.1c.ru/8.2/managed-application/logform" xmlns:style="http://v8.1c.ru/8.1/data/ui/style" xmlns:sys="http://v8.1c.ru/8.1/data/ui/fonts/system" xmlns:v8="http://v8.1c.ru/8.1/data/core" xmlns:v8ui="http://v8.1c.ru/8.1/data/ui" xmlns:web="http://v8.1c.ru/8.1/data/ui/colors/web" xmlns:win="http://v8.1c.ru/8.1/data/ui/colors/windows" xmlns:xr="http://v8.1c.ru/8.3/xcf/readable" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.17">
+<Form xmlns="http://v8.1c.ru/8.3/xcf/logform" xmlns:app="http://v8.1c.ru/8.2/managed-application/core" xmlns:cfg="http://v8.1c.ru/8.1/data/enterprise/current-config" xmlns:dcscor="http://v8.1c.ru/8.1/data-composition-system/core" xmlns:dcsset="http://v8.1c.ru/8.1/data-composition-system/settings" xmlns:ent="http://v8.1c.ru/8.1/data/enterprise" xmlns:lf="http://v8.1c.ru/8.2/managed-application/logform" xmlns:style="http://v8.1c.ru/8.1/data/ui/style" xmlns:sys="http://v8.1c.ru/8.1/data/ui/fonts/system" xmlns:v8="http://v8.1c.ru/8.1/data/core" xmlns:v8ui="http://v8.1c.ru/8.1/data/ui" xmlns:web="http://v8.1c.ru/8.1/data/ui/colors/web" xmlns:win="http://v8.1c.ru/8.1/data/ui/colors/windows" xmlns:xr="http://v8.1c.ru/8.3/xcf/readable" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.17">
 	<AutoCommandBar name="ФормаКоманднаяПанель" id="-1">
 		<ChildItems>
-			<Button name="ОбновитьСписокФорм" id="30">
-				<Type>CommandBarButton</Type>
-				<CommandName>Form.Command.ОбновитьСписокФорм</CommandName>
-				<ExtendedTooltip name="ОбновитьСписокФормРасширеннаяПодсказка" id="31"/>
-			</Button>
 			<Button name="СобратьКонтекст" id="20">
 				<Type>CommandBarButton</Type>
 				<DefaultButton>true</DefaultButton>
@@ -38,23 +33,55 @@
 			<ChildItems>
 				<Table name="СписокФорм" id="50">
 					<Representation>List</Representation>
-					<ChangeRowSet>true</ChangeRowSet>
-					<ChangeRowOrder>true</ChangeRowOrder>
+					<ChangeRowSet>false</ChangeRowSet>
+					<ChangeRowOrder>false</ChangeRowOrder>
 					<AutoInsertNewRow>true</AutoInsertNewRow>
 					<EnableStartDrag>true</EnableStartDrag>
 					<EnableDrag>true</EnableDrag>
 					<DataPath>СписокФорм</DataPath>
-					<RowFilter xsi:nil="true"/>
-					<ContextMenu name="СписокФормКонтекстноеМеню" id="51"/>
-					<AutoCommandBar name="СписокФормКоманднаяПанель" id="52"/>
-					<ExtendedTooltip name="СписокФормРасширеннаяПодсказка" id="53"/>
 					<SearchStringLocation>None</SearchStringLocation>
 					<ViewStatusLocation>None</ViewStatusLocation>
 					<SearchControlLocation>None</SearchControlLocation>
+					<RowFilter xsi:nil="true"/>
+					<ContextMenu name="СписокФормКонтекстноеМеню" id="51"/>
+					<AutoCommandBar name="СписокФормКоманднаяПанель" id="52">
+						<ChildItems>
+							<Button name="ОбновитьСписокФорм" id="30">
+								<Type>CommandBarButton</Type>
+								<CommandName>Form.Command.ОбновитьСписокФорм</CommandName>
+								<ExtendedTooltip name="ОбновитьСписокФормРасширеннаяПодсказка" id="31"/>
+							</Button>
+						</ChildItems>
+					</AutoCommandBar>
+					<ExtendedTooltip name="СписокФормРасширеннаяПодсказка" id="53"/>
+					<SearchStringAddition name="СписокФормСтрокаПоиска" id="71">
+						<AdditionSource>
+							<Item>СписокФорм</Item>
+							<Type>SearchStringRepresentation</Type>
+						</AdditionSource>
+						<ContextMenu name="СписокФормСтрокаПоискаКонтекстноеМеню" id="72"/>
+						<ExtendedTooltip name="СписокФормСтрокаПоискаРасширеннаяПодсказка" id="73"/>
+					</SearchStringAddition>
+					<ViewStatusAddition name="СписокФормСостояниеПросмотра" id="74">
+						<AdditionSource>
+							<Item>СписокФорм</Item>
+							<Type>ViewStatusRepresentation</Type>
+						</AdditionSource>
+						<ContextMenu name="СписокФормСостояниеПросмотраКонтекстноеМеню" id="75"/>
+						<ExtendedTooltip name="СписокФормСостояниеПросмотраРасширеннаяПодсказка" id="76"/>
+					</ViewStatusAddition>
+					<SearchControlAddition name="СписокФормУправлениеПоиском" id="77">
+						<AdditionSource>
+							<Item>СписокФорм</Item>
+							<Type>SearchControl</Type>
+						</AdditionSource>
+						<ContextMenu name="СписокФормУправлениеПоискомКонтекстноеМеню" id="78"/>
+						<ExtendedTooltip name="СписокФормУправлениеПоискомРасширеннаяПодсказка" id="79"/>
+					</SearchControlAddition>
 					<ChildItems>
 						<CheckBoxField name="СписокФормВыбрано" id="54">
 							<DataPath>СписокФорм.Выбрано</DataPath>
-							<EditMode>Enter</EditMode>
+							<CheckBoxType>Auto</CheckBoxType>
 							<ContextMenu name="СписокФормВыбраноКонтекстноеМеню" id="55"/>
 							<ExtendedTooltip name="СписокФормВыбраноРасширеннаяПодсказка" id="56"/>
 						</CheckBoxField>
@@ -94,7 +121,6 @@
 					</ToolTip>
 					<Group>Vertical</Group>
 					<Representation>NormalSeparation</Representation>
-					<ShowTitle>true</ShowTitle>
 					<ExtendedTooltip name="ГруппаНастройкиРасширеннаяПодсказка" id="2"/>
 					<ChildItems>
 						<InputField name="ПутьСохранения" id="3">
@@ -158,20 +184,20 @@
 						</v8:item>
 					</Title>
 					<TitleLocation>Top</TitleLocation>
+					<AutoMaxWidth>false</AutoMaxWidth>
 					<ContextMenu name="СтатусСбораКонтекстноеМеню" id="25"/>
 					<ExtendedTooltip name="СтатусСбораРасширеннаяПодсказка" id="26"/>
 				</LabelField>
 				<TextDocumentField name="РезультатСбора" id="27">
 					<DataPath>РезультатСбора</DataPath>
+					<ReadOnly>true</ReadOnly>
 					<Title>
 						<v8:item>
 							<v8:lang>ru</v8:lang>
 							<v8:content>Результаты сбора</v8:content>
 						</v8:item>
 					</Title>
-					<ReadOnly>true</ReadOnly>
 					<TitleLocation>Top</TitleLocation>
-					<Height>10</Height>
 					<ContextMenu name="РезультатСбораКонтекстноеМеню" id="28"/>
 					<ExtendedTooltip name="РезультатСбораРасширеннаяПодсказка" id="29"/>
 				</TextDocumentField>
