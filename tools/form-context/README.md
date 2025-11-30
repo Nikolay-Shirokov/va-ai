@@ -146,25 +146,22 @@ context/forms/
 
 #### Агентский (автоматический)
 
-✅ **Реализовано!**
+✅ **Реализовано через PowerShell CLI!**
 
-Автоматический сбор контекста через Python CLI:
+```powershell
+# 1. Настройте .env файл (один раз)
+Copy-Item .env.example .env
+notepad .env  # Укажите путь к базе и 1С
 
-```bash
-# Быстрый старт
-python tools/form-context/form_context_cli.py agent \
-    --infobase "File=C:/Bases/Test/" \
-    --forms "Документ.ЗаказПокупателя" \
-    --wait
-
-# Из файла со списком форм
-python tools/form-context/form_context_cli.py agent \
-    --infobase "File=C:/Bases/Test/" \
-    --forms-file forms.txt \
-    --wait
+# 2. Запустите сбор
+.\tools\form-context\form_context_agent.ps1 `
+    -FormsFile "tools\form-context\forms.txt" `
+    -Wait
 ```
 
-📌 **Подробнее:** [`AGENT_MODE_GUIDE.md`](./AGENT_MODE_GUIDE.md)
+📌 **Подробнее:**
+- Быстрый старт: [`QUICKSTART_POWERSHELL.md`](./QUICKSTART_POWERSHELL.md)
+- Полное руководство: [`AGENT_MODE_GUIDE.md`](./AGENT_MODE_GUIDE.md)
 
 ---
 
@@ -250,18 +247,24 @@ va-ai/
 │       ├── Документ.ЗаказПокупателя.md
 │       ├── Справочник.Контрагенты.md
 │       └── index.json               # Реестр форм
+├── .env.example                      # Пример конфигурации
+├── .env                             # Ваша конфигурация (в .gitignore)
 ├── tools/form-context/
 │   ├── FormContextCollector.epf     # Обработка 1С
+│   ├── form_context_agent.ps1      # ⭐ PowerShell CLI
 │   ├── README.md                    # Этот файл
-│   ├── QUICK_START.md               # Быстрый старт
+│   ├── QUICKSTART_POWERSHELL.md    # ⭐ Быстрый старт
+│   ├── QUICK_START.md               # Быстрый старт (интерактивный)
+│   ├── AGENT_MODE_GUIDE.md          # Полное руководство агентского режима
 │   ├── ФорматСтруктурыФорм.md      # Полная спецификация
 │   ├── MARKDOWN_FORMAT_V2_PLAN.md   # План реализации v2.0
 │   ├── SIMPLIFIED_ARCHITECTURE.md   # Архитектура
 │   ├── build-epf.bat               # Сборка EPF
 │   ├── unpack-epf.bat              # Распаковка EPF
+│   ├── agent/                       # Директория для task.json
 │   └── src/                        # Исходники обработки
 │       └── FormContextCollector/
-└── .gitignore                        # context/ в игноре
+└── .gitignore                        # context/ и .env в игноре
 ```
 
 ---
@@ -309,8 +312,9 @@ src/FormContextCollector/
 
 ### Основные документы
 
-- **[`QUICK_START.md`](./QUICK_START.md)** - Быстрый старт (3 минуты)
-- **[`AGENT_MODE_GUIDE.md`](./AGENT_MODE_GUIDE.md)** - 🆕 Руководство по агентскому режиму
+- **[`QUICKSTART_POWERSHELL.md`](./QUICKSTART_POWERSHELL.md)** - ⭐ Быстрый старт PowerShell (рекомендуется)
+- **[`QUICK_START.md`](./QUICK_START.md)** - Быстрый старт интерактивного режима
+- **[`AGENT_MODE_GUIDE.md`](./AGENT_MODE_GUIDE.md)** - Полное руководство по агентскому режиму
 - **[`ФорматСтруктурыФорм.md`](./ФорматСтруктурыФорм.md)** - Полное ТЗ на формат v2.0
 - **[`MARKDOWN_FORMAT_V2_PLAN.md`](./MARKDOWN_FORMAT_V2_PLAN.md)** - План реализации v2.0
 - **[`SIMPLIFIED_ARCHITECTURE.md`](./SIMPLIFIED_ARCHITECTURE.md)** - Упрощенная архитектура

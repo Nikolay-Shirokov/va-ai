@@ -19,6 +19,9 @@ venv/
 .DS_Store
 Thumbs.db
 
+# Environment configuration
+.env
+
 # User data
 user-scenarios/
 *.local.*
