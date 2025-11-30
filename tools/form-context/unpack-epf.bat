@@ -17,7 +17,7 @@ echo.
 rem --- Настройки ---
 set "SCRIPT_DIR=%~dp0"
 set "EPF_FILE=%SCRIPT_DIR%FormContextCollector.epf"
-set "OUTPUT_DIR=%SCRIPT_DIR%src"
+set "OUTPUT_DIR=%SCRIPT_DIR%dev\src"
 set "TEMP_IB=%SCRIPT_DIR%agent\temp_ib"
 set "LOG_FILE=%SCRIPT_DIR%agent\unpack.log"
 

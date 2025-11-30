@@ -16,7 +16,7 @@ echo.
 
 rem --- Настройки ---
 set "SCRIPT_DIR=%~dp0"
-set "SRC_DIR=%SCRIPT_DIR%src"
+set "SRC_DIR=%SCRIPT_DIR%dev\src"
 set "OUTPUT_FILE=%SCRIPT_DIR%FormContextCollector.epf"
 set "TEMP_IB=%SCRIPT_DIR%agent\temp_ib"
 set "LOG_FILE=%SCRIPT_DIR%agent\build.log"
