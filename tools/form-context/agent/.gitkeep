@@ -1,0 +1,5 @@
+# Директория для управляющих файлов агентского режима
+# task.json - создается Python CLI
+# task.json.processing - во время обработки
+# task.json.completed - после успешного завершения
+# task.json.error - при ошибке

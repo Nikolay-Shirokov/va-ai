@@ -1,0 +1,120 @@
+﻿{
+	"form_name": "Обработка.АнализПолномочийРолей.Форма.Форма",
+	"form_type": "data_processor_form",
+	"title": "ФормаКлиентскогоПриложения",
+	"elements": [
+		{
+			"name": "Страницы",
+			"type": "group",
+			"title": "Страницы",
+			"children": [
+				{
+					"name": "СтраницаПараметры",
+					"type": "group",
+					"title": "Параметры",
+					"children": [
+						{
+							"name": "РольИсточник",
+							"type": "field",
+							"kind": "input"
+						},
+						{
+							"name": "МаскаИмениРолиПриемника",
+							"type": "field",
+							"title": "Маска",
+							"kind": "input"
+						},
+						{
+							"name": "ПоказыватьПрофили",
+							"type": "field",
+							"kind": "checkbox"
+						},
+						{
+							"name": "РолиПриемники",
+							"type": "table",
+							"children": [
+								{
+									"name": "РолиПриемникиОтметка",
+									"type": "field",
+									"kind": "checkbox"
+								},
+								{
+									"name": "РолиПриемникиРоль",
+									"type": "field",
+									"kind": "input"
+								},
+								{
+									"name": "РолиПриемникиПрофили",
+									"type": "field",
+									"kind": "input"
+								}
+							]
+						}
+					]
+				},
+				{
+					"name": "СтраницаРезультатАнализа",
+					"type": "group",
+					"title": "Результат анализа",
+					"children": [
+						{
+							"name": "РезультатАнализа",
+							"type": "field",
+							"title": "Результат",
+							"kind": "other"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "ФормаКоманднаяПанель",
+			"type": "group",
+			"children": [
+				{
+					"name": "ФормаСоздатьНаОсновании",
+					"type": "group",
+					"title": "Создать на основании"
+				},
+				{
+					"name": "ФормаАнализировать",
+					"type": "button"
+				},
+				{
+					"name": "ФормаГруппаДополнительно",
+					"type": "group",
+					"title": "Дополнительно",
+					"children": [
+						{
+							"name": "ФормаВыгрузитьОтчет",
+							"type": "button"
+						},
+						{
+							"name": "ФормаСохранитьСоответствие",
+							"type": "button"
+						},
+						{
+							"name": "ФормаЗагрузитьСоответствие",
+							"type": "button"
+						}
+					]
+				},
+				{
+					"name": "ФормаИзменитьФорму",
+					"type": "button"
+				},
+				{
+					"name": "ФормаСправка",
+					"type": "button"
+				}
+			]
+		}
+	],
+	"metadata": {
+		"collected_at": "2025-11-30T15:41:17",
+		"collector_version": "1.0.0",
+		"max_depth": 5,
+		"include_invisible": false,
+		"detail_level": "minimal"
+	}
+}
