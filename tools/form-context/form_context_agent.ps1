@@ -330,6 +330,7 @@ $options = @{
     max_depth = 5
     close_after_collection = -not $NoClose.IsPresent
     wait_form_timeout = 2000
+    debug_mode = $DebugMode.IsPresent
 }
 
 Write-Host "Settings:" -ForegroundColor Green
