@@ -113,11 +113,20 @@
 .PARAMETER NoMarkdown
     Отключить генерацию Markdown-файлов с описанием форм.
     
-    По умолчанию создаются как JSON (для программ), так и MD (для людей).
+    По умолчанию создаются только MD файлы (для людей).
     Используйте этот флаг, если нужны только JSON-файлы.
     
     Передается в обработку как: options.generate_markdown = false
     Влияет на: Объект.ГенерироватьMarkdown
+
+.PARAMETER NoJson
+    Отключить генерацию JSON-файлов с данными форм.
+    
+    По умолчанию создаются только MD файлы (для людей).
+    Если нужны JSON-файлы для программной обработки, НЕ используйте этот флаг.
+    
+    Передается в обработку как: options.generate_json = false
+    Влияет на: Объект.ГенерироватьJSON
 
 .PARAMETER NoClose
     Не закрывать 1С автоматически после завершения обработки.
@@ -308,6 +317,9 @@ param(
     [switch]$NoMarkdown,
     
     [Parameter(Mandatory=$false)]
+    [switch]$NoJson,
+    
+    [Parameter(Mandatory=$false)]
     [switch]$NoClose,
     
     [Parameter(Mandatory=$false)]
@@ -355,7 +367,8 @@ function Show-QuickHelp {
     Write-Host "  -Password [pwd]        Пароль пользователя" -ForegroundColor White
     Write-Host "  -V8Path [path]         Путь к 1cv8.exe" -ForegroundColor White
     Write-Host "  -IncludeInvisible      Включать невидимые элементы" -ForegroundColor White
-    Write-Host "  -NoMarkdown            Не генерировать Markdown" -ForegroundColor White
+    Write-Host "  -NoMarkdown            Не генерировать Markdown (только JSON)" -ForegroundColor White
+    Write-Host "  -NoJson                Не генерировать JSON (только Markdown)" -ForegroundColor White
     Write-Host "  -NoClose               Не закрывать 1С после завершения" -ForegroundColor White
     Write-Host "  -Wait                  Ждать завершения обработки" -ForegroundColor White
     Write-Host "  -Timeout [seconds]     Таймаут для -Wait (по умолчанию: 300)" -ForegroundColor White
@@ -666,6 +679,7 @@ Write-Host ""
 $options = @{
     include_invisible = $IncludeInvisible.IsPresent
     generate_markdown = -not $NoMarkdown.IsPresent
+    generate_json = -not $NoJson.IsPresent
     max_depth = 5
     close_after_collection = -not $NoClose.IsPresent
     wait_form_timeout = 2000
@@ -675,6 +689,7 @@ $options = @{
 Write-Host "Settings:" -ForegroundColor Green
 Write-Host "   Include invisible: $($options.include_invisible)"
 Write-Host "   Generate Markdown: $($options.generate_markdown)"
+Write-Host "   Generate JSON: $($options.generate_json)"
 Write-Host "   Close 1C: $($options.close_after_collection)"
 Write-Host ""
 

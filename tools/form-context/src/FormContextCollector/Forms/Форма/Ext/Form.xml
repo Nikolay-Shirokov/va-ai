@@ -156,19 +156,31 @@
 							<ContextMenu name="ВключатьНевидимыеЭлементыКонтекстноеМеню" id="16"/>
 							<ExtendedTooltip name="ВключатьНевидимыеЭлементыРасширеннаяПодсказка" id="17"/>
 						</CheckBoxField>
-						<CheckBoxField name="ГенерироватьMarkdown" id="18">
-							<DataPath>Объект.ГенерироватьMarkdown</DataPath>
-							<Title>
-								<v8:item>
-									<v8:lang>ru</v8:lang>
-									<v8:content>Генерировать Markdown</v8:content>
-								</v8:item>
-							</Title>
-							<CheckBoxType>Auto</CheckBoxType>
-							<ContextMenu name="ГенерироватьMarkdownКонтекстноеМеню" id="19"/>
-							<ExtendedTooltip name="ГенерироватьMarkdownРасширеннаяПодсказка" id="70"/>
-						</CheckBoxField>
-						<CheckBoxField name="РежимОтладки" id="80">
+					<CheckBoxField name="ГенерироватьMarkdown" id="18">
+						<DataPath>Объект.ГенерироватьMarkdown</DataPath>
+						<Title>
+							<v8:item>
+								<v8:lang>ru</v8:lang>
+								<v8:content>Генерировать Markdown</v8:content>
+							</v8:item>
+						</Title>
+						<CheckBoxType>Auto</CheckBoxType>
+						<ContextMenu name="ГенерироватьMarkdownКонтекстноеМеню" id="19"/>
+						<ExtendedTooltip name="ГенерироватьMarkdownРасширеннаяПодсказка" id="70"/>
+					</CheckBoxField>
+					<CheckBoxField name="ГенерироватьJSON" id="85">
+						<DataPath>Объект.ГенерироватьJSON</DataPath>
+						<Title>
+							<v8:item>
+								<v8:lang>ru</v8:lang>
+								<v8:content>Генерировать JSON</v8:content>
+							</v8:item>
+						</Title>
+						<CheckBoxType>Auto</CheckBoxType>
+						<ContextMenu name="ГенерироватьJSONКонтекстноеМеню" id="86"/>
+						<ExtendedTooltip name="ГенерироватьJSONРасширеннаяПодсказка" id="87"/>
+					</CheckBoxField>
+					<CheckBoxField name="РежимОтладки" id="80">
 							<DataPath>Объект.РежимОтладки</DataPath>
 							<Title>
 								<v8:item>
