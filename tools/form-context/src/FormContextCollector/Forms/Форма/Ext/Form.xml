@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Form xmlns="http://v8.1c.ru/8.3/xcf/logform" xmlns:app="http://v8.1c.ru/8.2/managed-application/core" xmlns:cfg="http://v8.1c.ru/8.1/data/enterprise/current-config" xmlns:dcscor="http://v8.1c.ru/8.1/data-composition-system/core" xmlns:dcssch="http://v8.1c.ru/8.1/data-composition-system/schema" xmlns:dcsset="http://v8.1c.ru/8.1/data-composition-system/settings" xmlns:ent="http://v8.1c.ru/8.1/data/enterprise" xmlns:lf="http://v8.1c.ru/8.2/managed-application/logform" xmlns:style="http://v8.1c.ru/8.1/data/ui/style" xmlns:sys="http://v8.1c.ru/8.1/data/ui/fonts/system" xmlns:v8="http://v8.1c.ru/8.1/data/core" xmlns:v8ui="http://v8.1c.ru/8.1/data/ui" xmlns:web="http://v8.1c.ru/8.1/data/ui/colors/web" xmlns:win="http://v8.1c.ru/8.1/data/ui/colors/windows" xmlns:xr="http://v8.1c.ru/8.3/xcf/readable" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.17">
+	<CommandBarLocation>Top</CommandBarLocation>
 	<AutoCommandBar name="ФормаКоманднаяПанель" id="-1">
 		<ChildItems>
 			<Button name="СобратьКонтекст" id="20">
@@ -12,6 +13,11 @@
 				<Type>CommandBarButton</Type>
 				<CommandName>Form.Command.Очистить</CommandName>
 				<ExtendedTooltip name="ОчиститьРасширеннаяПодсказка" id="23"/>
+			</Button>
+			<Button name="ОбновитьСписокФорм" id="30">
+				<Type>CommandBarButton</Type>
+				<CommandName>Form.Command.ОбновитьСписокФорм</CommandName>
+				<ExtendedTooltip name="ОбновитьСписокФормРасширеннаяПодсказка" id="31"/>
 			</Button>
 		</ChildItems>
 	</AutoCommandBar>
@@ -33,6 +39,7 @@
 			<ChildItems>
 				<Table name="СписокФорм" id="50">
 					<Representation>List</Representation>
+					<CommandBarLocation>None</CommandBarLocation>
 					<ChangeRowSet>false</ChangeRowSet>
 					<ChangeRowOrder>false</ChangeRowOrder>
 					<AutoInsertNewRow>true</AutoInsertNewRow>
@@ -44,15 +51,7 @@
 					<SearchControlLocation>None</SearchControlLocation>
 					<RowFilter xsi:nil="true"/>
 					<ContextMenu name="СписокФормКонтекстноеМеню" id="51"/>
-					<AutoCommandBar name="СписокФормКоманднаяПанель" id="52">
-						<ChildItems>
-							<Button name="ОбновитьСписокФорм" id="30">
-								<Type>CommandBarButton</Type>
-								<CommandName>Form.Command.ОбновитьСписокФорм</CommandName>
-								<ExtendedTooltip name="ОбновитьСписокФормРасширеннаяПодсказка" id="31"/>
-							</Button>
-						</ChildItems>
-					</AutoCommandBar>
+					<AutoCommandBar name="СписокФормКоманднаяПанель" id="52"/>
 					<ExtendedTooltip name="СписокФормРасширеннаяПодсказка" id="53"/>
 					<SearchStringAddition name="СписокФормСтрокаПоиска" id="71">
 						<AdditionSource>
@@ -194,6 +193,21 @@
 						</InputField>
 					</ChildItems>
 				</UsualGroup>
+				<CommandBar name="ДействияФормы" id="83">
+					<Title>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Действия формы</v8:content>
+						</v8:item>
+					</Title>
+					<ToolTip>
+						<v8:item>
+							<v8:lang>ru</v8:lang>
+							<v8:content>Действия формы</v8:content>
+						</v8:item>
+					</ToolTip>
+					<ExtendedTooltip name="ДействияФормыРасширеннаяПодсказка" id="84"/>
+				</CommandBar>
 				<LabelField name="СтатусСбора" id="24">
 					<DataPath>СтатусСбора</DataPath>
 					<Title>
