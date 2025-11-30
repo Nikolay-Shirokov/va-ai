@@ -1,61 +1,281 @@
-<#
+﻿<#
 .SYNOPSIS
     Form Context Collector - Agent Mode CLI (PowerShell)
+    
+    Автоматический сбор контекста форм 1С для AI-ассистентов и тестирования.
 
 .DESCRIPTION
-    Автоматический сбор контекста форм 1С для AI-ассистентов.
-    Создает task.json, запускает 1С с обработкой и ожидает завершения.
+    Скрипт для автоматизации сбора структурного контекста форм 1С:Enterprise.
+    
+    Основные возможности:
+    - Автоматический запуск 1С с обработкой сбора контекста
+    - Поддержка файловых и клиент-серверных баз
+    - Пакетная обработка списка форм из файла
+    - Асинхронный режим с отслеживанием статуса
+    - Настройка параметров сбора через командную строку
+    - Интеграция с .env файлом для хранения учетных данных
+    
+    Рабочий процесс:
+    1. Скрипт создает файл задания agent\task.json с параметрами
+    2. Запускает 1С с обработкой FormContextCollector.epf
+    3. Обработка читает task.json и выполняет сбор контекста
+    4. Результаты сохраняются в context\forms\ (JSON + Markdown)
+    5. Статус записывается в task.json.completed/error
+    
+    Результаты работы:
+    - context\forms\index.json - индекс обработанных форм
+    - context\forms\*.json - структура каждой формы
+    - context\forms\*.md - человекочитаемое описание (опционально)
 
 .PARAMETER InfoBasePath
-    Путь к файловой базе (File=C:/Bases/Test/)
+    Путь к файловой информационной базе 1С.
+    
+    Формат: C:\Bases\MyBase\ или C:\Bases\MyBase
+    Альтернатива: Используйте -InfoBaseName для зарегистрированных баз
+    Из .env: INFOBASE_PATH
+    
+    Обязательный: Да (если не указан -InfoBaseName)
 
 .PARAMETER InfoBaseName
-    Имя базы из списка информационных баз
+    Имя информационной базы из списка 1С (для клиент-серверных или зарегистрированных баз).
+    
+    Используется для баз, зарегистрированных в списке информационных баз 1С.
+    Альтернатива: Используйте -InfoBasePath для прямого указания пути
+    Из .env: INFOBASE_NAME
+    
+    Обязательный: Да (если не указан -InfoBasePath)
 
 .PARAMETER UserName
-    Имя пользователя 1С
+    Имя пользователя для подключения к информационной базе 1С.
+    
+    Опциональный параметр, если база не требует авторизации.
+    Из .env: USERNAME_1C
 
 .PARAMETER Password
-    Пароль пользователя
+    Пароль пользователя для подключения к информационной базе.
+    
+    Рекомендуется использовать .env файл вместо передачи в командной строке.
+    Из .env: PASSWORD_1C
 
 .PARAMETER Forms
-    Массив форм для обработки
+    Массив полных путей к формам для обработки.
+    
+    Формат: "Тип.ИмяОбъекта.Форма.ИмяФормы"
+    Примеры типов: Документ, Справочник, Обработка, Отчет
+    
+    Обязательный: Да (если не указан -FormsFile)
+    
+    Пример одной формы:
+        @("Документ.ЗаказКлиента.Форма.ФормаДокумента")
+    
+    Пример нескольких форм:
+        @("Документ.ЗаказКлиента.Форма.ФормаДокумента",
+          "Справочник.Контрагенты.Форма.ФормаЭлемента")
 
 .PARAMETER FormsFile
-    Файл со списком форм (по одной на строку)
+    Путь к текстовому файлу со списком форм (одна форма на строку).
+    
+    Формат файла:
+    - Кодировка UTF-8
+    - Одна форма на строку
+    - Пустые строки игнорируются
+    - Строки начинающиеся с # считаются комментариями
+    
+    Обязательный: Да (если не указан -Forms)
+    
+    Пример файла forms.txt:
+        # Документы
+        Документ.ЗаказКлиента.Форма.ФормаДокумента
+        Документ.РеализацияТоваров.Форма.ФормаДокумента
+        
+        # Справочники
+        Справочник.Контрагенты.Форма.ФормаЭлемента
 
 .PARAMETER V8Path
-    Путь к 1cv8.exe (по умолчанию из PATH или .env)
+    Путь к исполняемому файлу платформы 1С (1cv8.exe).
+    
+    По умолчанию: 1cv8.exe (ищется в PATH)
+    Из .env: V8_PATH
+    
+    Примеры:
+        "1cv8.exe" - из PATH
+        "C:\Program Files\1cv8\8.3.24.1634\bin\1cv8.exe" - полный путь
 
 .PARAMETER IncludeInvisible
-    Включать невидимые элементы
+    Включать невидимые элементы формы в результаты сбора контекста.
+    
+    По умолчанию невидимые элементы (с Видимость=Ложь) исключаются.
+    Используйте этот флаг для полного анализа структуры формы.
+    
+    Передается в обработку как: options.include_invisible = true
+    Влияет на: Объект.ВключатьНевидимыеЭлементы
 
 .PARAMETER NoMarkdown
-    Не генерировать Markdown
+    Отключить генерацию Markdown-файлов с описанием форм.
+    
+    По умолчанию создаются как JSON (для программ), так и MD (для людей).
+    Используйте этот флаг, если нужны только JSON-файлы.
+    
+    Передается в обработку как: options.generate_markdown = false
+    Влияет на: Объект.ГенерироватьMarkdown
 
 .PARAMETER NoClose
-    Не закрывать 1С после завершения
+    Не закрывать 1С автоматически после завершения обработки.
+    
+    По умолчанию 1С закрывается после обработки всех форм.
+    Полезно для отладки или визуального просмотра результатов.
+    
+    Передается в обработку как: options.close_after_collection = false
 
 .PARAMETER Wait
-    Ждать завершения обработки
+    Ждать завершения обработки перед выходом из скрипта.
+    
+    По умолчанию скрипт запускает 1С и сразу завершается.
+    С этим флагом скрипт ожидает появления файла task.json.completed/error.
+    
+    Полезно для:
+    - CI/CD пайплайнов
+    - Последовательной обработки
+    - Контроля завершения
+    
+    Используйте с -Timeout для ограничения времени ожидания.
 
 .PARAMETER Timeout
-    Таймаут ожидания в секундах (по умолчанию 300)
+    Максимальное время ожидания завершения обработки в секундах.
+    
+    По умолчанию: 300 секунд (5 минут)
+    Используется только с флагом -Wait
+    
+    Статусы завершения:
+    - Успех (код 0): task.json.completed создан
+    - Ошибка (код 1): task.json.error создан
+    - Таймаут (код 2): время истекло
+    
+    Примеры:
+        -Timeout 600   # 10 минут
+        -Timeout 1800  # 30 минут
 
 .PARAMETER DebugMode
-    Режим отладки с дополнительным выводом
+    Включить режим отладки с детальным выводом информации.
+    
+    Дополнительный вывод:
+    - Загрузка .env файла
+    - Пути к файлам и обработке
+    - Полная командная строка запуска 1С
+    - Детальная информация о процессе
+    
+    Передается в обработку как: options.debug_mode = true
+    Влияет на: Объект.РежимОтладки и создание debug.log
 
 .EXAMPLE
-    .\form_context_agent.ps1 -InfoBasePath "C:\Bases\Test" -Forms @("Документ.ЗаказПокупателя")
+    .\form_context_agent.ps1 -InfoBasePath "C:\Bases\Test" -Forms @("Документ.ЗаказКлиента.Форма.ФормаДокумента")
+    
+    Базовое использование: обработать одну форму из файловой базы.
 
 .EXAMPLE
     .\form_context_agent.ps1 -InfoBasePath "C:\Bases\Test" -FormsFile "forms.txt" -Wait
+    
+    Обработать список форм из файла с ожиданием завершения.
+    Скрипт завершится только после обработки всех форм или таймаута.
 
 .EXAMPLE
-    .\form_context_agent.ps1 -InfoBaseName "MyBase" -Forms @("Справочник.Контрагенты") -NoClose
+    .\form_context_agent.ps1 -InfoBaseName "Production_DB" -UserName "Тестировщик" -Password "Test123" -Forms @("Справочник.Контрагенты.Форма.ФормаЭлемента")
+    
+    Подключение к клиент-серверной базе с учетными данными.
+
+.EXAMPLE
+    .\form_context_agent.ps1 -InfoBasePath "C:\Bases\Test" -Forms @("Документ.ЗаказКлиента") -IncludeInvisible -DebugMode -NoClose
+    
+    Режим отладки: включены невидимые элементы, детальный вывод, 1С не закрывается.
+    Полезно для диагностики проблем и анализа результатов.
+
+.EXAMPLE
+    .\form_context_agent.ps1 -InfoBasePath "C:\Bases\Test" -FormsFile "all_forms.txt" -Wait -Timeout 1800 -NoMarkdown
+    
+    Пакетная обработка большого списка форм:
+    - Ожидание до 30 минут
+    - Только JSON файлы (без Markdown)
+    - Подходит для CI/CD
+
+.EXAMPLE
+    .\form_context_agent.ps1 -Forms @("Документ.ЗаказКлиента")
+    
+    Использование параметров из .env файла.
+    Требует наличие .env с: V8_PATH, INFOBASE_PATH (или INFOBASE_NAME), USERNAME_1C, PASSWORD_1C
+
+.EXAMPLE
+    .\form_context_agent.ps1 -InfoBasePath "C:\Bases\Test" -Forms @("Справочник.Номенклатура") -V8Path "C:\Program Files\1cv8\8.3.24.1634\bin\1cv8.exe"
+    
+    Указание конкретной версии платформы 1С.
+
+.EXAMPLE
+    # Запуск без ожидания и проверка статуса отдельно
+    .\form_context_agent.ps1 -InfoBasePath "C:\Bases\Test" -Forms @("Документ.ЗаказКлиента")
+    
+    # Позже проверить статус:
+    if (Test-Path "agent\task.json.completed") { Write-Host "Done!" }
+
+.INPUTS
+    Нет. Скрипт не принимает данные из конвейера.
+
+.OUTPUTS
+    System.Int32
+    
+    Коды возврата:
+    0 - Успешное завершение
+    1 - Ошибка (параметры, файлы, запуск)
+    2 - Таймаут ожидания (только с -Wait)
 
 .NOTES
-    Требует: 1cv8.exe, FormContextCollector.epf
+    Имя файла: form_context_agent.ps1
+    Автор: VA-AI Project
+    Требования:
+        - PowerShell 5.1 или выше
+        - 1C:Enterprise 8.3 (1cv8.exe)
+        - FormContextCollector.epf (собрать через build-epf.bat)
+    
+    Структура файлов:
+        form_context_agent.ps1          - Этот скрипт
+        FormContextCollector.epf        - Обработка 1С
+        agent\task.json                 - Файл задания
+        agent\task.json.processing      - Маркер выполнения
+        agent\task.json.completed       - Маркер успеха
+        agent\task.json.error           - Маркер ошибки
+        context\forms\index.json        - Индекс результатов
+        context\forms\*.json            - Данные форм
+        context\forms\*.md              - Описания форм
+        debug.log                       - Лог отладки
+    
+    Файл .env (опционально):
+        V8_PATH=C:\Program Files\1cv8\8.3.24.1634\bin\1cv8.exe
+        INFOBASE_PATH=C:\Bases\Production\
+        USERNAME_1C=Администратор
+        PASSWORD_1C=SecurePassword123
+    
+    Передача параметров в обработку:
+        PowerShell флаг → task.json options → Реквизиты обработки
+        -IncludeInvisible → include_invisible → ВключатьНевидимыеЭлементы
+        -NoMarkdown → generate_markdown → ГенерироватьMarkdown
+        -NoClose → close_after_collection → (управление закрытием)
+        -DebugMode → debug_mode → РежимОтладки
+    
+    Устранение неполадок:
+        1. Проверьте debug.log при включенном -DebugMode
+        2. Убедитесь что FormContextCollector.epf собран (build-epf.bat)
+        3. Проверьте права доступа к каталогу agent\ и context\
+        4. При таймауте увеличьте -Timeout или запустите без -Wait
+
+.LINK
+    Подробная справка: POWERSHELL_SCRIPT_REFERENCE.md
+
+.LINK
+    Руководство: AGENT_MODE_GUIDE.md
+
+.LINK
+    Быстрый старт: QUICK_START.md
+
+.LINK
+    Проект: https://github.com/your-repo/va-ai
 #>
 
 [CmdletBinding()]
@@ -97,12 +317,125 @@ param(
     [int]$Timeout = 300,
     
     [Parameter(Mandatory=$false)]
-    [switch]$DebugMode
+    [switch]$DebugMode,
+    
+    [Parameter(Mandatory=$false)]
+    [Alias("h")]
+    [switch]$Help
 )
 
 # Set encoding
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+#region Help and Quick Start
+
+function Show-QuickHelp {
+    Write-Host ""
+    Write-Host "Form Context Collector - Agent Mode" -ForegroundColor Cyan
+    Write-Host ("=" * 70) -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "Автоматический сбор контекста форм 1С для AI-ассистентов" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "USAGE:" -ForegroundColor Yellow
+    Write-Host "  .\form_context_agent.ps1 -InfoBasePath [path] -Forms [array]" -ForegroundColor White
+    Write-Host "  .\form_context_agent.ps1 -InfoBaseName [name] -FormsFile [file]" -ForegroundColor White
+    Write-Host ""
+    Write-Host "REQUIRED PARAMETERS:" -ForegroundColor Yellow
+    Write-Host "  Database (одно из двух):" -ForegroundColor Gray
+    Write-Host "    -InfoBasePath [path]   Путь к файловой базе" -ForegroundColor White
+    Write-Host "    -InfoBaseName [name]   Имя базы из списка 1С" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  Forms (одно из двух):" -ForegroundColor Gray
+    Write-Host "    -Forms [array]         Массив путей к формам" -ForegroundColor White
+    Write-Host "    -FormsFile [file]      Файл со списком форм" -ForegroundColor White
+    Write-Host ""
+    Write-Host "COMMON OPTIONS:" -ForegroundColor Yellow
+    Write-Host "  -UserName [name]       Имя пользователя 1С" -ForegroundColor White
+    Write-Host "  -Password [pwd]        Пароль пользователя" -ForegroundColor White
+    Write-Host "  -V8Path [path]         Путь к 1cv8.exe" -ForegroundColor White
+    Write-Host "  -IncludeInvisible      Включать невидимые элементы" -ForegroundColor White
+    Write-Host "  -NoMarkdown            Не генерировать Markdown" -ForegroundColor White
+    Write-Host "  -NoClose               Не закрывать 1С после завершения" -ForegroundColor White
+    Write-Host "  -Wait                  Ждать завершения обработки" -ForegroundColor White
+    Write-Host "  -Timeout [seconds]     Таймаут для -Wait (по умолчанию: 300)" -ForegroundColor White
+    Write-Host "  -DebugMode             Режим отладки с детальным выводом" -ForegroundColor White
+    Write-Host ""
+    Write-Host "EXAMPLES:" -ForegroundColor Yellow
+    Write-Host "  # Обработать одну форму" -ForegroundColor Gray
+    Write-Host "  .\form_context_agent.ps1 -InfoBasePath ""C:\Bases\Test"" ``" -ForegroundColor White
+    Write-Host "      -Forms @(""Документ.ЗаказКлиента.Форма.ФормаДокумента"")" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  # Обработать список из файла с ожиданием" -ForegroundColor Gray
+    Write-Host "  .\form_context_agent.ps1 -InfoBasePath ""C:\Bases\Test"" ``" -ForegroundColor White
+    Write-Host "      -FormsFile ""forms.txt"" -Wait" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  # Режим отладки с невидимыми элементами" -ForegroundColor Gray
+    Write-Host "  .\form_context_agent.ps1 -InfoBasePath ""C:\Bases\Test"" ``" -ForegroundColor White
+    Write-Host "      -Forms @(""Справочник.Контрагенты"") ``" -ForegroundColor White
+    Write-Host "      -IncludeInvisible -DebugMode -NoClose" -ForegroundColor White
+    Write-Host ""
+    Write-Host "HELP & DOCUMENTATION:" -ForegroundColor Yellow
+    Write-Host "  .\form_context_agent.ps1 -Help             Показать эту справку" -ForegroundColor White
+    Write-Host "  .\form_context_agent.ps1 -h                То же самое" -ForegroundColor White
+    Write-Host "  Get-Help .\form_context_agent.ps1          Краткая справка" -ForegroundColor White
+    Write-Host "  Get-Help .\form_context_agent.ps1 -Detailed    Детальная справка" -ForegroundColor White
+    Write-Host "  Get-Help .\form_context_agent.ps1 -Examples    Примеры использования" -ForegroundColor White
+    Write-Host "  Get-Help .\form_context_agent.ps1 -Full        Полная справка" -ForegroundColor White
+    Write-Host ""
+    Write-Host "  POWERSHELL_SCRIPT_REFERENCE.md - Полная справочная документация" -ForegroundColor White
+    Write-Host "  AGENT_MODE_GUIDE.md            - Руководство по агентскому режиму" -ForegroundColor White
+    Write-Host "  QUICK_START.md                 - Быстрый старт" -ForegroundColor White
+    Write-Host ""
+}
+
+# Check for help flag (-Help, -h, -?)
+if ($Help) {
+    Show-QuickHelp
+    Write-Host "Для детальной справки используйте:" -ForegroundColor Cyan
+    Write-Host "  Get-Help .\form_context_agent.ps1 -Detailed" -ForegroundColor White
+    Write-Host ""
+    exit 0
+}
+
+# Also check for common help variations in direct arguments
+$helpArgs = @("-h", "--help", "-help", "/?", "/h", "/help", "help")
+foreach ($arg in $args) {
+    if ($helpArgs -contains $arg.ToLower()) {
+        Show-QuickHelp
+        Write-Host "Для детальной справки используйте:" -ForegroundColor Cyan
+        Write-Host "  Get-Help .\form_context_agent.ps1 -Detailed" -ForegroundColor White
+        Write-Host ""
+        exit 0
+    }
+}
+
+# Check if script was called without any parameters - show quick help
+if ($PSBoundParameters.Count -eq 0 -and $args.Count -eq 0) {
+    Show-QuickHelp
+    Write-Host "ERROR: " -NoNewline -ForegroundColor Red
+    Write-Host "Скрипт запущен без параметров" -ForegroundColor Yellow
+    Write-Host ""
+    exit 1
+}
+
+# Check if script was called without required parameters - show quick help
+$hasInfoBase = $InfoBasePath -or $InfoBaseName
+$hasForms = $Forms -or $FormsFile
+
+if (-not $hasInfoBase -or -not $hasForms) {
+    # Check if .env might have the values
+    $envFile = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) ".env"
+    $hasEnvFile = Test-Path $envFile
+    
+    # If no .env file or still missing forms, show quick help
+    if (-not $hasEnvFile -or -not $hasForms) {
+        Show-QuickHelp
+        # Don't exit yet - let the validation section handle it with proper error messages
+    }
+}
+
+#endregion
 
 #region Functions
 
@@ -116,7 +449,13 @@ function Import-EnvFile {
                 if ($line -match '^([^=]+)=(.*)$') {
                     $name = $matches[1].Trim()
                     $value = $matches[2].Trim()
-                    $value = $value -replace '^["'']|["'']$', ''
+                    # Remove quotes from values
+                    if ($value.StartsWith('"') -and $value.EndsWith('"')) {
+                        $value = $value.Substring(1, $value.Length - 2)
+                    }
+                    elseif ($value.StartsWith("'") -and $value.EndsWith("'")) {
+                        $value = $value.Substring(1, $value.Length - 2)
+                    }
                     [Environment]::SetEnvironmentVariable($name, $value, 'Process')
                 }
             }
