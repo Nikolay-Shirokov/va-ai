@@ -343,6 +343,9 @@ $taskFile = Join-Path $scriptDir "agent\task.json"
 
 $taskFile = New-TaskFile -FormsList $formsList -Options $options -TaskFilePath $taskFile
 
+# Добавляем паузу, чтобы файл task.json успел создаться на диске перед запуском 1С
+Start-Sleep -Seconds 1
+
 #endregion
 
 #region Check 1cv8.exe and FormContextCollector.epf
