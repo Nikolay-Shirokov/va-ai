@@ -100,17 +100,13 @@ param(
     [switch]$DebugMode
 )
 
-# Устанавливаем кодировку для текущей сессии PowerShell
+# Set encoding
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-#region Функции
+#region Functions
 
 function Import-EnvFile {
-    <#
-    .SYNOPSIS
-        Загружает переменные окружения из .env файла
-    #>
     param([string]$EnvFilePath = ".env")
     
     if (Test-Path $EnvFilePath) {
@@ -139,7 +135,7 @@ function Write-DebugInfo {
 
 function Write-ErrorInfo {
     param([string]$Message)
-    Write-Host "ОШИБКА: $Message" -ForegroundColor Red
+    Write-Host "ERROR: $Message" -ForegroundColor Red
 }
 
 function Write-SuccessInfo {
@@ -148,10 +144,6 @@ function Write-SuccessInfo {
 }
 
 function New-TaskFile {
-    <#
-    .SYNOPSIS
-        Создает управляющий файл task.json для агентского режима
-    #>
     param(
         [Parameter(Mandatory=$true)]
         [array]$FormsList,
@@ -170,24 +162,18 @@ function New-TaskFile {
         options = $Options
     }
     
-    # Создаем директорию если нужно
     $taskDir = Split-Path $TaskFilePath -Parent
     if (-not (Test-Path $taskDir)) {
         New-Item -ItemType Directory -Path $taskDir -Force | Out-Null
     }
     
-    # Записываем JSON
     $task | ConvertTo-Json -Depth 10 | Out-File -FilePath $TaskFilePath -Encoding UTF8
     
-    Write-SuccessInfo "Создан файл задания: $TaskFilePath"
+    Write-SuccessInfo "Task file created: $TaskFilePath"
     return $TaskFilePath
 }
 
 function Wait-TaskCompletion {
-    <#
-    .SYNOPSIS
-        Ожидает завершения обработки task.json
-    #>
     param(
         [Parameter(Mandatory=$true)]
         [string]$TaskFile,
@@ -196,15 +182,14 @@ function Wait-TaskCompletion {
         [int]$TimeoutSeconds
     )
     
-    Write-Host "`nОжидание завершения (таймаут: ${TimeoutSeconds}с)..." -ForegroundColor Green
+    Write-Host "`nWaiting for completion (timeout: ${TimeoutSeconds}s)..." -ForegroundColor Green
     
     $startTime = Get-Date
     $processingFile = "$TaskFile.processing"
     $completedFile = "$TaskFile.completed"
     $errorFile = "$TaskFile.error"
     
-    # Ждем появления .processing
-    Write-Host "   Ожидание начала обработки..." -NoNewline
+    Write-Host "   Waiting for processing to start..." -NoNewline
     while (-not (Test-Path $processingFile) -and ((Get-Date) - $startTime).TotalSeconds -lt 120) {
         Start-Sleep -Milliseconds 500
         Write-Host "." -NoNewline
@@ -212,14 +197,13 @@ function Wait-TaskCompletion {
     Write-Host ""
     
     if (-not (Test-Path $processingFile)) {
-        Write-Host "ПРЕДУПРЕЖДЕНИЕ: файл .processing не появился" -ForegroundColor Yellow
+        Write-Host "WARNING: processing file did not appear" -ForegroundColor Yellow
         return "timeout"
     }
     
-    Write-SuccessInfo "Обработка запущена"
-    Write-Host "   Ожидание завершения..." -NoNewline
+    Write-SuccessInfo "Processing started"
+    Write-Host "   Waiting for completion..." -NoNewline
     
-    # Ждем завершения
     while (((Get-Date) - $startTime).TotalSeconds -lt $TimeoutSeconds) {
         if (Test-Path $completedFile) {
             Write-Host ""
@@ -240,15 +224,13 @@ function Wait-TaskCompletion {
 
 #endregion
 
-#region Загрузка .env и применение параметров
+#region Load .env and apply parameters
 
-# Загружаем переменные окружения из .env файла (если существует)
 $envLoaded = Import-EnvFile
 if ($envLoaded) {
     Write-DebugInfo "Environment variables loaded from .env file"
 }
 
-# Приоритет: Параметр командной строки → .env файл → Значение по умолчанию
 if (-not $PSBoundParameters.ContainsKey('V8Path')) {
     $envV8Path = [Environment]::GetEnvironmentVariable('V8_PATH', 'Process')
     if ($envV8Path) { $V8Path = $envV8Path }
@@ -276,7 +258,7 @@ if (-not $PSBoundParameters.ContainsKey('Password')) {
 
 #endregion
 
-#region Валидация параметров
+#region Validate parameters
 
 Write-Host "=" * 60 -ForegroundColor Cyan
 Write-Host "Form Context Collector - Agent Mode" -ForegroundColor Cyan
@@ -284,24 +266,23 @@ Write-Host "=" * 60 -ForegroundColor Cyan
 Write-Host ""
 
 if (-not $InfoBasePath -and -not $InfoBaseName) {
-    Write-ErrorInfo "Требуется InfoBasePath или InfoBaseName"
-    Write-Host "   Используйте параметр -InfoBasePath или -InfoBaseName" -ForegroundColor Yellow
+    Write-ErrorInfo "InfoBasePath or InfoBaseName required"
+    Write-Host "   Use -InfoBasePath or -InfoBaseName parameter" -ForegroundColor Yellow
     exit 1
 }
 
 if (-not $Forms -and -not $FormsFile) {
-    Write-ErrorInfo "Не указаны формы для обработки"
-    Write-Host "   Используйте параметр -Forms или -FormsFile" -ForegroundColor Yellow
+    Write-ErrorInfo "No forms specified for processing"
+    Write-Host "   Use -Forms or -FormsFile parameter" -ForegroundColor Yellow
     exit 1
 }
 
 #endregion
 
-#region Сбор списка форм
+#region Collect forms list
 
 $formsList = @()
 
-# Из параметра -Forms
 if ($Forms) {
     foreach ($form in $Forms) {
         $formsList += @{
@@ -311,10 +292,9 @@ if ($Forms) {
     }
 }
 
-# Из файла -FormsFile
 if ($FormsFile) {
     if (-not (Test-Path $FormsFile)) {
-        Write-ErrorInfo "Файл не найден: $FormsFile"
+        Write-ErrorInfo "File not found: $FormsFile"
         exit 1
     }
     
@@ -330,11 +310,11 @@ if ($FormsFile) {
 }
 
 if ($formsList.Count -eq 0) {
-    Write-ErrorInfo "Список форм пуст"
+    Write-ErrorInfo "Forms list is empty"
     exit 1
 }
 
-Write-Host "Форм для обработки: $($formsList.Count)" -ForegroundColor Green
+Write-Host "Forms to process: $($formsList.Count)" -ForegroundColor Green
 for ($i = 0; $i -lt $formsList.Count; $i++) {
     Write-Host "   $($i + 1). $($formsList[$i].value)"
 }
@@ -342,7 +322,7 @@ Write-Host ""
 
 #endregion
 
-#region Подготовка task.json
+#region Prepare task.json
 
 $options = @{
     include_invisible = $IncludeInvisible.IsPresent
@@ -352,24 +332,21 @@ $options = @{
     wait_form_timeout = 2000
 }
 
-Write-Host "Настройки:" -ForegroundColor Green
-Write-Host "   Включать невидимые: $($options.include_invisible)"
-Write-Host "   Генерировать Markdown: $($options.generate_markdown)"
-Write-Host "   Закрывать 1С: $($options.close_after_collection)"
+Write-Host "Settings:" -ForegroundColor Green
+Write-Host "   Include invisible: $($options.include_invisible)"
+Write-Host "   Generate Markdown: $($options.generate_markdown)"
+Write-Host "   Close 1C: $($options.close_after_collection)"
 Write-Host ""
 
-# Определяем путь к task.json
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $taskFile = Join-Path $scriptDir "agent\task.json"
 
-# Создаем task.json
 $taskFile = New-TaskFile -FormsList $formsList -Options $options -TaskFilePath $taskFile
 
 #endregion
 
-#region Проверка 1cv8.exe и FormContextCollector.epf
+#region Check 1cv8.exe and FormContextCollector.epf
 
-# Проверка существования 1cv8.exe
 $v8Exists = $false
 if ([System.IO.Path]::IsPathRooted($V8Path)) {
     $v8Exists = Test-Path $V8Path
@@ -384,27 +361,26 @@ if ([System.IO.Path]::IsPathRooted($V8Path)) {
 
 if (-not $v8Exists) {
     Write-Host ""
-    Write-ErrorInfo "1C:Enterprise platform (1cv8.exe) не найден"
+    Write-ErrorInfo "1C:Enterprise platform (1cv8.exe) not found"
     Write-Host ""
-    Write-Host "Проверено: $V8Path" -ForegroundColor Yellow
+    Write-Host "Checked: $V8Path" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "Проверьте:" -ForegroundColor Cyan
-    Write-Host "  1. 1C:Enterprise установлен" -ForegroundColor Gray
-    Write-Host "  2. Правильный путь в V8_PATH (.env файл) или -V8Path" -ForegroundColor Gray
-    Write-Host "  3. 1cv8.exe есть в system PATH" -ForegroundColor Gray
+    Write-Host "Please verify:" -ForegroundColor Cyan
+    Write-Host "  1. 1C:Enterprise is installed" -ForegroundColor Gray
+    Write-Host "  2. Correct path in V8_PATH (.env file) or -V8Path" -ForegroundColor Gray
+    Write-Host "  3. 1cv8.exe is in system PATH" -ForegroundColor Gray
     Write-Host ""
     exit 1
 }
 
 Write-DebugInfo "Using 1C platform: $V8Path"
 
-# Проверка обработки
 $processingPath = Join-Path $scriptDir "FormContextCollector.epf"
 if (-not (Test-Path $processingPath)) {
     Write-Host ""
-    Write-ErrorInfo "Обработка не найдена: $processingPath"
-    Write-Host "   Убедитесь, что FormContextCollector.epf находится в каталоге со скриптом" -ForegroundColor Yellow
-    Write-Host "   Выполните: cd tools/form-context && build-epf.bat" -ForegroundColor Yellow
+    Write-ErrorInfo "Processing not found: $processingPath"
+    Write-Host "   Make sure FormContextCollector.epf is in the script directory" -ForegroundColor Yellow
+    Write-Host "   Run: cd tools/form-context && build-epf.bat" -ForegroundColor Yellow
     Write-Host ""
     exit 1
 }
@@ -413,27 +389,22 @@ Write-DebugInfo "Processing file: $processingPath"
 
 #endregion
 
-#region Запуск 1С с обработкой
+#region Launch 1C with processing
 
-Write-Host "Запуск 1С..." -ForegroundColor Green
+Write-Host "Launching 1C..." -ForegroundColor Green
 
 $arguments = @("ENTERPRISE")
 
-# Параметры подключения к ИБ
 if ($InfoBaseName) {
     $arguments += "/IBName", "`"$InfoBaseName`""
 } else {
     $arguments += "/F", "`"$InfoBasePath`""
 }
 
-# Учетные данные
 if ($UserName) { $arguments += "/N", "`"$UserName`"" }
 if ($Password) { $arguments += "/P", "`"$Password`"" }
 
-# Обработка для выполнения
 $arguments += "/Execute", "`"$processingPath`""
-
-# Отключение диалогов
 $arguments += "/DisableStartupDialogs"
 
 if ($DebugMode) {
@@ -441,25 +412,24 @@ if ($DebugMode) {
     Write-DebugInfo "Command: $cmdLine"
 }
 
-Write-Host "   База: $InfoBasePath$InfoBaseName"
-Write-Host "   Обработка: $processingPath"
+Write-Host "   Database: $InfoBasePath$InfoBaseName"
+Write-Host "   Processing: $processingPath"
 Write-Host ""
 
-# Запуск 1С в фоне (неблокирующий)
 try {
     $process = Start-Process -FilePath $V8Path `
                             -ArgumentList $arguments `
                             -PassThru
     
-    Write-SuccessInfo "1С запущен (PID: $($process.Id))"
+    Write-SuccessInfo "1C launched (PID: $($process.Id))"
 } catch {
-    Write-ErrorInfo "Ошибка запуска 1С: $_"
+    Write-ErrorInfo "Failed to launch 1C: $_"
     exit 1
 }
 
 #endregion
 
-#region Ожидание завершения
+#region Wait for completion
 
 if ($Wait) {
     $status = Wait-TaskCompletion -TaskFile $taskFile -TimeoutSeconds $Timeout
@@ -469,24 +439,24 @@ if ($Wait) {
     
     switch ($status) {
         "completed" {
-            Write-SuccessInfo "Обработка завершена успешно"
-            Write-Host "   Результаты сохранены в context/forms/" -ForegroundColor Gray
+            Write-SuccessInfo "Processing completed successfully"
+            Write-Host "   Results saved in context/forms/" -ForegroundColor Gray
             exit 0
         }
         "error" {
-            Write-ErrorInfo "Ошибка при обработке"
-            Write-Host "   Проверьте лог: tools/form-context/debug.log" -ForegroundColor Yellow
+            Write-ErrorInfo "Error during processing"
+            Write-Host "   Check log: tools/form-context/debug.log" -ForegroundColor Yellow
             exit 1
         }
         "timeout" {
-            Write-Host "ПРЕДУПРЕЖДЕНИЕ: Превышен таймаут ожидания" -ForegroundColor Yellow
-            Write-Host "   Обработка может продолжать работу в фоне" -ForegroundColor Gray
+            Write-Host "WARNING: Timeout exceeded" -ForegroundColor Yellow
+            Write-Host "   Processing may continue in background" -ForegroundColor Gray
             exit 2
         }
     }
 } else {
-    Write-SuccessInfo "1С запущен в фоновом режиме"
-    Write-Host "   Проверьте статус: task.json.processing → task.json.completed" -ForegroundColor Gray
+    Write-SuccessInfo "1C launched in background mode"
+    Write-Host "   Check status: task.json.processing -> task.json.completed" -ForegroundColor Gray
     Write-Host ""
     exit 0
 }
